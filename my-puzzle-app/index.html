@@ -37,13 +37,12 @@
       padding-left: 0.35em;
     }
 
-    /* 2文字用マス */
-    .kanji-2len {
+    /* 未入力（値が空）のときだけ区切り線を表示 */
+    .kanji-2len:placeholder-shown {
       background: #ffffff linear-gradient(to right, transparent 50%, #e5e7eb 50%, transparent 52%);
     }
 
-    /* 3文字用マス */
-    .kanji-3len {
+    .kanji-3len:placeholder-shown {
       background: #ffffff linear-gradient(to right, 
         transparent 33.33%, 
         #e5e7eb 33.33%, 
@@ -113,16 +112,16 @@
 
         <div class="flex items-center justify-center gap-2 sm:gap-4 overflow-x-auto py-2">
           <!-- 熟語1 (2文字) -->
-          <input type="text" id="w1" maxlength="2" class="square-input kanji-word-input kanji-2len w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
+          <input type="text" id="w1" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
 
           <!-- 熟語2 (2文字) -->
-          <input type="text" id="w2" maxlength="2" class="square-input kanji-word-input kanji-2len w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
+          <input type="text" id="w2" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
 
           <!-- 熟語3 (2文字) -->
-          <input type="text" id="w3" maxlength="2" class="square-input kanji-word-input kanji-2len w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
+          <input type="text" id="w3" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
 
           <!-- 熟語4 (3文字) -->
-          <input type="text" id="w4" maxlength="3" class="square-input kanji-word-input kanji-3len w-24 h-9 sm:w-28 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
+          <input type="text" id="w4" maxlength="3" placeholder=" " class="square-input kanji-word-input kanji-3len w-24 h-9 sm:w-28 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
         </div>
       </section>
 
@@ -338,14 +337,12 @@
       return text.split('').map(c => encryptChar(c, shift)).join('');
     }
 
-    // STEP2の熟語入力バリデーション（指定漢字・文字数一致のみ許可）
     function getInputsState() {
       const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
       const words = kanjiInputs.map(i => i.value.trim());
 
       if (digits.length < 9) return null;
 
-      // 文字数・実在熟語の完全一致チェック
       const isWordValid = words.every((w, idx) => w === VALID_KANJI_WORDS[idx]);
       if (!isWordValid) return null;
 
@@ -385,10 +382,9 @@
         return;
       }
 
-      const correctAnswerBase = encryptText('かいじょう', state.digits); // きいちろお / きぢろく 等
+      const correctAnswerBase = encryptText('かいじょう', state.digits);
       const userInputValue = answerInput.value.trim();
 
-      // 表記揺れ（きいちろお、きいちろよう、きぢろく）に対応
       const validAnswers = [
         correctAnswerBase,
         correctAnswerBase.replace(/お$/, 'よう'),
