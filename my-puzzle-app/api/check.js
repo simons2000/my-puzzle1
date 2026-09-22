@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
     const readings = [];
 
-    // 1. 各漢字の画数チェック & 読み取得 (kanjiapi.dev)
+    // 1. 各漢字の画数チェック
     for (let i = 0; i < 9; i++) {
       const char = allKanji[i];
       const expectedStroke = parseInt(targetDigits[i], 10);
@@ -41,13 +41,13 @@ export default async function handler(req, res) {
       }
     }
 
-    // 2. 各熟語の読み（ひらがな）を取得
-    // Yahoo JLP API等の外部APIが設定されていればそれを使用し、無ければフォールバック
+    // 2. 熟語の読み取得（音読み優先ロジック）
     const clientID = process.env.YAHOO_CLIENT_ID;
 
     for (const word of words) {
       let wordReading = "";
 
+      // Yahoo APIが設定されている場合は形態素解析で正確な読みを取得
       if (clientID) {
         try {
           const yahooRes = await fetch('https://jlp.yahooapis.jp/MAService/V2/parse', {
@@ -67,30 +67,39 @@ export default async function handler(req, res) {
           if (yahooRes.ok) {
             const yahooData = await yahooRes.json();
             const tokens = yahooData?.result?.tokens || [];
-            if (tokens.length === 1 && tokens[0][1]) {
-              wordReading = tokens[0][1];
+            if (tokens.length >= 1 && tokens[0][1]) {
+              // トークンの読みを連結（カタカナをひらがなに変換）
+              const katakanaReading = tokens.map(t => t[1] || "").join('');
+              wordReading = katakanaReading.replace(/[\u30a1-\u30f6]/g, m => 
+                String.fromCharCode(m.charCodeAt(0) - 0x60)
+              );
             }
           }
         } catch (e) {
-          // Yahoo APIエラー時はスキップしてフォールバックへ
+          // エラー時はフォールバックへ
         }
       }
 
-      // Yahoo APIで取得できなかった場合のフォールバック（文字ごとのオン/クン読み候補から平仮名化）
+      // APIキーなし / Yahoo取得失敗時のフォールバック処理
+      // 漢語（熟語）は音読み（on_readings）が基本のため、on_readingsを優先取得
       if (!wordReading) {
         let fallbackReading = "";
         for (const char of word) {
           const kRes = await fetch(`https://kanjiapi.dev/v1/kanji/${encodeURIComponent(char)}`);
           if (kRes.ok) {
             const kData = await kRes.json();
-            const readingsList = [...(kData.kun_readings || []), ...(kData.on_readings || [])];
-            if (readingsList.length > 0) {
-              // 濁点などを簡易変換してひらがなに統一
-              let r = readingsList[0].replace(/\./g, '').replace(/[\u30a1-\u30f6]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));
-              fallbackReading += r;
-            } else {
-              fallbackReading += char;
-            }
+            // 音読み(on_readings)を最優先、無ければ訓読み(kun_readings)
+            const onReadings = kData.on_readings || [];
+            const kunReadings = kData.kun_readings || [];
+            
+            let selectedReading = onReadings.length > 0 ? onReadings[0] : (kunReadings[0] || char);
+            
+            // カタカナをひらがなに変換＆送り仮名表記（.）の除去
+            selectedReading = selectedReading
+              .replace(/\./g, '')
+              .replace(/[\u30a1-\u30f6]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));
+
+            fallbackReading += selectedReading;
           } else {
             fallbackReading += char;
           }
