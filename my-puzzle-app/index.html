@@ -137,10 +137,10 @@
 
     let wordReadings = [];
 
-    // STEP 1 自動フォーカス
     const s1LeftInputs  = Array.from(document.querySelectorAll('.step1-left-in'));
     const s1RightInputs = Array.from(document.querySelectorAll('.step1-right-in'));
 
+    // STEP 1 入力＆フォーカス制御
     s1LeftInputs.forEach((input, index) => {
       input.addEventListener('input', () => {
         if (input.value.length === 1 && index < s1LeftInputs.length - 1) {
@@ -158,6 +158,7 @@
     function checkStep1() {
       const vals = s1LeftInputs.map(i => i.value.trim());
 
+      // 1つでも未入力や数字以外があれば計算をクリアしてSTEP 2をリセット
       if (vals.some(v => v === "" || isNaN(v))) {
         s1RightInputs.forEach(i => i.value = "");
         document.getElementById('step1-mark').innerText = "⬜";
@@ -166,9 +167,9 @@
         return;
       }
 
-      const num1 = parseInt(vals[0] + vals[1]);
-      const num2 = parseInt(vals[2] + vals[3]);
-      const num3 = parseInt(vals[4] + vals[5]);
+      const num1 = parseInt(vals[0] + vals[1], 10);
+      const num2 = parseInt(vals[2] + vals[3], 10);
+      const num3 = parseInt(vals[4] + vals[5], 10);
       const sum  = num1 + num2 + num3;
 
       const sumStr = sum.toString().padStart(3, '0');
@@ -182,6 +183,9 @@
 
       document.getElementById('step1-mark').innerText = "✅";
       unlockStep2();
+
+      // 数字が変わったので、STEP 2が入力済みであれば再チェックを行う
+      checkStep2();
     }
 
     function updateStrokeHints(digits) {
@@ -194,6 +198,7 @@
     function unlockStep2() {
       document.getElementById('step2-container').classList.remove('opacity-40', 'pointer-events-none');
     }
+
     function lockStep2() {
       document.getElementById('step2-container').classList.add('opacity-40', 'pointer-events-none');
       document.getElementById('step2-mark').innerText = "⬜";
@@ -211,18 +216,28 @@
       const msgEl = document.getElementById('step2-msg');
       msgEl.innerText = "";
 
-      if (words.some(w => w === "")) return;
+      if (words.some(w => w === "")) {
+        document.getElementById('step2-mark').innerText = "⬜";
+        lockStep3();
+        return;
+      }
 
       if (words[0].length !== 2 || words[1].length !== 2 || words[2].length !== 2 || words[3].length !== 3) {
         msgEl.innerText = "指定の文字数（2字／3字）を入力してください";
+        document.getElementById('step2-mark').innerText = "⬜";
+        lockStep3();
         return;
       }
 
       const targetDigits = [...s1LeftInputs.map(i => i.value.trim()), ...s1RightInputs.map(i => i.value.trim())];
+      if (targetDigits.some(d => d === "" || isNaN(d))) {
+        document.getElementById('step2-mark').innerText = "⬜";
+        lockStep3();
+        return;
+      }
 
       msgEl.innerText = "判定中...";
 
-      // 連打防止のため少し待ってからAPI送信
       clearTimeout(checkTimeout);
       checkTimeout = setTimeout(async () => {
         try {
@@ -241,7 +256,6 @@
             return;
           }
 
-          // 正解
           msgEl.innerText = "";
           wordReadings = data.readings;
           document.getElementById('step2-mark').innerText = "✅";
@@ -249,8 +263,10 @@
 
         } catch (err) {
           msgEl.innerText = "通信エラーが発生しました。Vercelサーバーを確認してください。";
+          document.getElementById('step2-mark').innerText = "⬜";
+          lockStep3();
         }
-      }, 500);
+      }, 400);
     }
 
     // STEP 3
