@@ -111,7 +111,6 @@
           <span id="step2LockMsg" class="text-xs text-red-400 font-normal">※STEP1を完成させてください</span>
         </div>
 
-        <!-- 熟語ごとに繋がったブロック構造 (薄い区切り線付き) -->
         <div class="flex items-center justify-center gap-2 sm:gap-4 overflow-x-auto py-2">
           <!-- 熟語1 (2文字) -->
           <input type="text" id="w1" maxlength="2" class="square-input kanji-word-input kanji-2len w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
@@ -131,7 +130,7 @@
       <section class="space-y-4">
         <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP3 暗号文を解読し、解錠せよ</h2>
 
-        <!-- 暗号文表示エリア -->
+        <!-- 暗号文表示エリア（分かち書き形式） -->
         <div class="bg-gray-950 border border-yellow-500/30 p-4 rounded text-center space-y-2">
           <p class="text-xs text-yellow-500/70">【 暗号文 】</p>
           <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-yellow-300 tracking-wider">
@@ -166,7 +165,7 @@
   </main>
 
   <script>
-    // 漢字から読み（ひらがな）への対応表
+    // 漢字熟語からひらがな読みへのマッピングテーブル
     const KANJI_READING_MAP = {
       '人口': 'じんこう',
       '大金': 'たいきん',
@@ -174,33 +173,27 @@
       '一人前': 'いちにんまえ'
     };
 
-    // 五十音リスト（暗号変換用）
+    // 五十音リスト
     const AIUEO = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん';
 
-    // STEP1: 数字入力欄
+    // DOM要素
     const leftInputs = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'].map(id => document.getElementById(id));
     const rightInputs = ['d6', 'd7', 'd8'].map(id => document.getElementById(id));
-
-    // STEP2: 漢字熟語入力欄（4つ）
     const kanjiInputs = ['w1', 'w2', 'w3', 'w4'].map(id => document.getElementById(id));
     const step2Section = document.getElementById('step2Section');
     const step2LockMsg = document.getElementById('step2LockMsg');
-
-    // STEP3: 暗号文表示・回答欄
     const cipherDisplay = document.getElementById('cipherDisplay');
     const answerInput = document.getElementById('answerInput');
 
-    // STEP1の入力・自動計算処理
+    // STEP1: 入力処理
     leftInputs.forEach((input, index) => {
       input.addEventListener('input', () => {
         input.value = input.value.replace(/[^0-9]/g, '');
-        
         if (input.value && index < leftInputs.length - 1) {
           leftInputs[index + 1].focus();
         }
-
         calculateStep1();
-        updateCipherDisplay();
+        updateDisplay();
       });
 
       input.addEventListener('keydown', (e) => {
@@ -210,29 +203,19 @@
       });
     });
 
-    // STEP1 右辺自動計算 & STEP2 ロック解除
     function calculateStep1() {
       const vals = leftInputs.map(i => i.value);
-      const isComplete = vals.every(v => v !== '');
-
-      if (isComplete) {
-        const num1 = parseInt(vals[0] + vals[1], 10);
-        const num2 = parseInt(vals[2] + vals[3], 10);
-        const num3 = parseInt(vals[4] + vals[5], 10);
-        const sum = num1 + num2 + num3;
-
+      if (vals.every(v => v !== '')) {
+        const sum = parseInt(vals[0] + vals[1], 10) + parseInt(vals[2] + vals[3], 10) + parseInt(vals[4] + vals[5], 10);
         const sumStr = String(sum).padStart(3, '0');
-
         if (sumStr.length === 3) {
           rightInputs[0].value = sumStr[0];
           rightInputs[1].value = sumStr[1];
           rightInputs[2].value = sumStr[2];
-
           unlockStep2();
           return;
         }
       }
-
       rightInputs.forEach(i => i.value = '');
       lockStep2();
     }
@@ -252,24 +235,21 @@
       });
     }
 
-    // STEP2: 漢字決定（IME確定）時のみ次の入力欄へ移動
+    // STEP2: 入力・フォーカス制御
     kanjiInputs.forEach((input, index) => {
       let isComposing = false;
 
-      input.addEventListener('compositionstart', () => {
-        isComposing = true;
-      });
-
+      input.addEventListener('compositionstart', () => { isComposing = true; });
       input.addEventListener('compositionend', () => {
         isComposing = false;
         checkAndMove();
-        updateCipherDisplay();
+        updateDisplay();
       });
 
       input.addEventListener('input', () => {
         if (!isComposing) {
           checkAndMove();
-          updateCipherDisplay();
+          updateDisplay();
         }
       });
 
@@ -288,53 +268,53 @@
     });
 
     /**
-     * 読み（ひらがな）をSTEP1の数字に基づいて暗号化する関数
+     * 暗号化アルゴリズム
+     * ひらがな文字列とSTEP1の数字列をもとに指定のシフト変換を行う
      */
-    function encodeKana(kanaStr, digits) {
-      if (!kanaStr) return '';
-      const shiftKey = parseInt(digits[0] || '1', 10);
-      
-      return kanaStr.split('').map(char => {
-        const normalizedChar = char.normalize('NFKC');
-        const idx = AIUEO.indexOf(normalizedChar);
+    function encryptText(text, digits) {
+      if (!text || !digits) return '';
+      const shift = parseInt(digits[0] || '1', 10);
+
+      return text.split('').map(char => {
+        const normChar = char.normalize('NFKC');
+        const idx = AIUEO.indexOf(normChar);
         if (idx !== -1) {
-          const newIdx = (idx + shiftKey) % AIUEO.length;
-          return AIUEO[newIdx];
+          return AIUEO[(idx + shift) % AIUEO.length];
         }
         return char;
       }).join('');
     }
 
-    // 正しい解錠コード（正解文字列）を取得
-    function getExpectedAnswer() {
+    // STEP1・2の条件入力状況を確認
+    function getInputsState() {
       const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
       const words = kanjiInputs.map(i => i.value.trim());
-
       if (digits.length < 9 || words.some(w => w === '')) {
         return null;
       }
-
-      // 各熟語の読みを暗号化し、スラッシュなしの連続文字列として結合
-      return words.map(word => {
-        const kana = KANJI_READING_MAP[word] || word;
-        return encodeKana(kana, digits);
-      }).join('');
+      return { digits, words };
     }
 
-    // リアルタイムで暗号文（スラッシュなし）を生成・更新
-    function updateCipherDisplay() {
-      const expected = getExpectedAnswer();
-      if (expected) {
-        cipherDisplay.innerText = expected;
-      } else {
+    // 画面上の暗号文表示（分かち書き）を更新
+    function updateDisplay() {
+      const state = getInputsState();
+      if (!state) {
         cipherDisplay.innerText = '※STEP1・2を入力すると暗号文が現れます';
+        return;
       }
+
+      // STEP2の熟語の読みを暗号化して「 / 」で区切る
+      const cipherWords = state.words.map(word => {
+        const reading = KANJI_READING_MAP[word] || word;
+        return encryptText(reading, state.digits);
+      });
+
+      cipherDisplay.innerText = cipherWords.join(' / ');
     }
 
-    // フォーム検証・判定処理
+    // 判定（送信）処理
     const form = document.getElementById('puzzleForm');
     const resultDiv = document.getElementById('result');
-    const submitBtn = document.getElementById('submitBtn');
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -342,18 +322,26 @@
       resultDiv.classList.add('hidden');
       resultDiv.className = 'hidden rounded p-4 text-center text-sm font-bold border';
 
-      const expectedAnswer = getExpectedAnswer();
-      const userInputAnswer = answerInput.value.trim();
+      const state = getInputsState();
+      if (!state) {
+        resultDiv.classList.remove('hidden');
+        resultDiv.classList.add('bg-red-950', 'text-red-400', 'border-red-800');
+        resultDiv.innerText = 'STEP1およびSTEP2を完成させてから回答してください。';
+        return;
+      }
+
+      // 正解文字列（「かいじょう」を同じルールで暗号化した結果）を動的に計算
+      const correctAnswer = encryptText('かいじょう', state.digits);
+      const userInputValue = answerInput.value.trim();
 
       resultDiv.classList.remove('hidden');
 
-      // 判定ロジック: 入力が揃っており、かつ期待される暗号化文字列と完全一致するか
-      if (expectedAnswer && userInputAnswer === expectedAnswer) {
+      if (userInputValue === correctAnswer) {
         resultDiv.classList.add('bg-yellow-400', 'text-black', 'border-yellow-400');
         resultDiv.innerHTML = `🎉 解錠成功！<br>正解です！`;
       } else {
         resultDiv.classList.add('bg-red-950', 'text-red-400', 'border-red-800');
-        resultDiv.innerText = '不正解です。暗号化された文字列を正しく解読してください。';
+        resultDiv.innerText = '不正解です。「かいじょう」を正しく暗号化した文字列を入力してください。';
       }
     });
   </script>
