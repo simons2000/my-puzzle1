@@ -239,21 +239,24 @@
       });
     }
 
-    // STEP2: 漢字決定時に次のマスへ移動
+    // STEP2: 日本語入力の確定（変換完了）時のみ次のマスへ移動
     kanjiInputs.forEach((input, index) => {
-      input.addEventListener('input', () => {
-        // 漢字入力（変換確定時）で1文字以上あれば次のマスに移動
-        if (input.value.length > 0) {
-          // 2文字以上入力された場合は1文字に切り詰め
-          if (input.value.length > 1) {
-            input.value = input.value.slice(-1);
+      // 変換確定イベント
+      input.addEventListener('compositionend', () => {
+        setTimeout(() => {
+          if (input.value.length > 0) {
+            // 最後の1文字を残す
+            if (input.value.length > 1) {
+              input.value = input.value.slice(-1);
+            }
+            if (index < kanjiInputs.length - 1) {
+              kanjiInputs[index + 1].focus();
+            }
           }
-          if (index < kanjiInputs.length - 1) {
-            kanjiInputs[index + 1].focus();
-          }
-        }
+        }, 10);
       });
 
+      // バックスペースでの逆移動
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Backspace' && !input.value && index > 0) {
           kanjiInputs[index - 1].focus();
