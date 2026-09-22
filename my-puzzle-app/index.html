@@ -3,67 +3,165 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>暗号パズル</title>
-  <!-- スタイリッシュなダークモード用のフォントとTailwind CSSを読み込み -->
+  <title>暗号パズル - Cipher Puzzle</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
       background-color: #0b0f19;
-      color: #f9fafb;
+      color: #f3f4f6;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    input::placeholder {
+      color: #4b5563;
     }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen py-10 px-4 flex flex-col items-center justify-center">
 
-  <main class="w-full max-w-md bg-[#111827] rounded-2xl p-6 shadow-2xl border border-gray-800 space-y-6">
-    <!-- タイトル -->
-    <header class="text-center space-y-1">
-      <h1 class="text-xl font-bold tracking-widest text-amber-500 uppercase">Cipher Puzzle</h1>
-      <p class="text-xs text-gray-400">画数から熟語を導き出せ</p>
+  <main class="w-full max-w-lg bg-[#111827] rounded-2xl p-6 sm:p-8 shadow-2xl border border-gray-800 space-y-8">
+    
+    <!-- ヘッダー -->
+    <header class="text-center border-b border-gray-800 pb-5">
+      <h1 class="text-2xl font-extrabold tracking-widest text-amber-500">CIPHER PUZZLE</h1>
+      <p class="text-xs text-gray-400 mt-1">画数方程式から熟語を導き出せ</p>
     </header>
 
-    <!-- STEP 1 & STEP 2 入力エリア -->
-    <form id="puzzleForm" class="space-y-6">
-      <!-- 目標画数ヒント -->
-      <div class="space-y-2">
-        <label class="block text-xs font-semibold text-gray-400 tracking-wider">TARGET STROKES (9桁)</label>
+    <form id="puzzleForm" class="space-y-8">
+
+      <!-- STEP 1: 数式・画数設定 -->
+      <section class="space-y-3">
+        <div class="flex items-center space-x-2">
+          <span class="bg-amber-500/10 text-amber-500 text-xs font-bold px-2.5 py-1 rounded-md border border-amber-500/20">STEP 1</span>
+          <h2 class="text-sm font-bold text-gray-200">目標画数の入力 (9桁)</h2>
+        </div>
+        
         <input 
           type="text" 
           id="targetDigits" 
-          placeholder="例: 123456789" 
+          placeholder="例: 213421345" 
           maxlength="9"
           required
-          class="w-full bg-[#1f2937] text-amber-400 font-mono text-center text-lg tracking-widest py-3 px-4 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600"
+          class="w-full bg-[#1f2937] text-amber-400 font-mono text-center text-xl tracking-[0.2em] py-3 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all"
         >
-      </div>
 
-      <!-- 4つの熟語入力 -->
-      <div class="space-y-3">
-        <label class="block text-xs font-semibold text-gray-400 tracking-wider">WORDS (4つの熟語 / 計9文字)</label>
-        <div class="grid grid-cols-2 gap-3">
-          <input type="text" id="word1" placeholder="1つ目" required class="bg-[#1f2937] text-white text-center py-2.5 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600">
-          <input type="text" id="word2" placeholder="2つ目" required class="bg-[#1f2937] text-white text-center py-2.5 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600">
-          <input type="text" id="word3" placeholder="3つ目" required class="bg-[#1f2937] text-white text-center py-2.5 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600">
-          <input type="text" id="word4" placeholder="4つ目" required class="bg-[#1f2937] text-white text-center py-2.5 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600">
+        <!-- 数式プレビュー表示エリア -->
+        <div id="formulaPreview" class="bg-[#192231] p-3 rounded-xl border border-gray-800 text-center font-mono text-xs text-gray-400 min-h-[42px] flex items-center justify-center">
+          数字を入力するとここに画数方程式が表示されます
         </div>
-      </div>
+      </section>
 
-      <!-- 送信ボタン -->
-      <button 
-        type="submit" 
-        id="submitBtn"
-        class="w-full bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold py-3 rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-amber-500/10"
-      >
-        判定する
-      </button>
+
+      <!-- STEP 2: 熟語入力 (4つの熟語 / 計9文字) -->
+      <section class="space-y-4">
+        <div class="flex items-center space-x-2">
+          <span class="bg-amber-500/10 text-amber-500 text-xs font-bold px-2.5 py-1 rounded-md border border-amber-500/20">STEP 2</span>
+          <h2 class="text-sm font-bold text-gray-200">熟語の解答 (4つの熟語 / 計9文字)</h2>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <!-- 熟語 1 (2文字) -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px] text-gray-400 px-1 font-mono">
+              <span>語 1 (2字)</span>
+              <span id="strokeHint1" class="text-amber-500/80">- 画</span>
+            </div>
+            <input type="text" id="word1" placeholder="例: 人口" required class="w-full bg-[#1f2937] text-white text-center py-2.5 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all text-base">
+          </div>
+
+          <!-- 熟語 2 (2文字) -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px] text-gray-400 px-1 font-mono">
+              <span>語 2 (2字)</span>
+              <span id="strokeHint2" class="text-amber-500/80">- 画</span>
+            </div>
+            <input type="text" id="word2" placeholder="例: 大金" required class="w-full bg-[#1f2937] text-white text-center py-2.5 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all text-base">
+          </div>
+
+          <!-- 熟語 3 (2文字) -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px] text-gray-400 px-1 font-mono">
+              <span>語 3 (2字)</span>
+              <span id="strokeHint3" class="text-amber-500/80">- 画</span>
+            </div>
+            <input type="text" id="word3" placeholder="熟語3" required class="w-full bg-[#1f2937] text-white text-center py-2.5 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all text-base">
+          </div>
+
+          <!-- 熟語 4 (3文字) -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px] text-gray-400 px-1 font-mono">
+              <span>語 4 (3字)</span>
+              <span id="strokeHint4" class="text-amber-500/80">- 画</span>
+            </div>
+            <input type="text" id="word4" placeholder="例: 一人前" required class="w-full bg-[#1f2937] text-white text-center py-2.5 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all text-base">
+          </div>
+        </div>
+      </section>
+
+
+      <!-- STEP 3: 判定ボタン & 結果表示 -->
+      <section class="space-y-4 border-t border-gray-800 pt-5">
+        <div class="flex items-center space-x-2">
+          <span class="bg-amber-500/10 text-amber-500 text-xs font-bold px-2.5 py-1 rounded-md border border-amber-500/20">STEP 3</span>
+          <h2 class="text-sm font-bold text-gray-200">解答の検証</h2>
+        </div>
+
+        <button 
+          type="submit" 
+          id="submitBtn"
+          class="w-full bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-amber-500/10 text-sm tracking-wider"
+        >
+          パズルを判定する
+        </button>
+
+        <!-- 結果表示領域 -->
+        <div id="result" class="hidden rounded-xl p-4 text-center text-sm font-medium transition-all"></div>
+      </section>
+
     </form>
-
-    <!-- 結果表示エリア -->
-    <div id="result" class="hidden rounded-xl p-4 text-center text-sm font-medium transition-all"></div>
   </main>
 
   <script>
+    const targetInput = document.getElementById('targetDigits');
+    const formulaPreview = document.getElementById('formulaPreview');
+    const strokeHint1 = document.getElementById('strokeHint1');
+    const strokeHint2 = document.getElementById('strokeHint2');
+    const strokeHint3 = document.getElementById('strokeHint3');
+    const strokeHint4 = document.getElementById('strokeHint4');
+
+    // STEP 1 の数字入力に応じて数式と各マスの画数ヒントを自動生成
+    targetInput.addEventListener('input', () => {
+      const val = targetInput.value.replace(/[^0-9]/g, '');
+      targetInput.value = val;
+
+      if (val.length === 9) {
+        const d = val.split('').map(Number);
+        
+        // 数式プレビューの構築
+        formulaPreview.innerHTML = `
+          <div class="space-y-1 text-amber-400 font-mono">
+            <div>[語1] ${d[0]} + ${d[1]} = <span class="font-bold underline">${d[0]+d[1]}</span></div>
+            <div>[語2] ${d[2]} + ${d[3]} = <span class="font-bold underline">${d[2]+d[3]}</span></div>
+            <div>[語3] ${d[4]} + ${d[5]} = <span class="font-bold underline">${d[4]+d[5]}</span></div>
+            <div>[語4] ${d[6]} + ${d[7]} + ${d[8]} = <span class="font-bold underline">${d[6]+d[7]+d[8]}</span></div>
+          </div>
+        `;
+
+        // STEP 2 の画数ヒント更新
+        strokeHint1.innerText = `[${d[0]}, ${d[1]}]画`;
+        strokeHint2.innerText = `[${d[2]}, ${d[3]}]画`;
+        strokeHint3.innerText = `[${d[4]}, ${d[5]}]画`;
+        strokeHint4.innerText = `[${d[6]}, ${d[7]}, ${d[8]}]画`;
+      } else {
+        formulaPreview.innerText = `9桁の数字を入力してください (${val.length}/9)`;
+        strokeHint1.innerText = '- 画';
+        strokeHint2.innerText = '- 画';
+        strokeHint3.innerText = '- 画';
+        strokeHint4.innerText = '- 画';
+      }
+    });
+
+    // STEP 3 判定処理
     const form = document.getElementById('puzzleForm');
     const resultDiv = document.getElementById('result');
     const submitBtn = document.getElementById('submitBtn');
@@ -71,13 +169,12 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      // UIの初期化
       resultDiv.classList.add('hidden');
       resultDiv.className = 'hidden rounded-xl p-4 text-center text-sm font-medium transition-all';
       submitBtn.disabled = true;
       submitBtn.innerText = '検証中...';
 
-      const targetDigits = document.getElementById('targetDigits').value.trim();
+      const targetDigits = targetInput.value.trim();
       const words = [
         document.getElementById('word1').value.trim(),
         document.getElementById('word2').value.trim(),
@@ -99,8 +196,10 @@
         if (data.success) {
           resultDiv.classList.add('bg-emerald-950/80', 'text-emerald-400', 'border', 'border-emerald-800');
           resultDiv.innerHTML = `
-            <p class="font-bold text-base mb-1">🎉 CLEAR!</p>
-            <p>読み: ${data.readings.join(' / ')}</p>
+            <div class="space-y-1">
+              <p class="font-bold text-base text-emerald-300">🎉 SUCCESS! パズルクリア</p>
+              <p class="text-xs text-emerald-200/80 font-mono">読み: ${data.readings.join(' / ')}</p>
+            </div>
           `;
         } else {
           resultDiv.classList.add('bg-rose-950/80', 'text-rose-400', 'border', 'border-rose-800');
@@ -112,7 +211,7 @@
         resultDiv.innerText = '通信エラーが発生しました。';
       } finally {
         submitBtn.disabled = false;
-        submitBtn.innerText = '判定する';
+        submitBtn.innerText = 'パズルを判定する';
       }
     });
   </script>
