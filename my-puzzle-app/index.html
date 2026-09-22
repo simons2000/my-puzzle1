@@ -143,7 +143,7 @@
           <input 
             type="text" 
             id="answerInput" 
-            class="square-input w-48 sm:w-64 h-11 sm:h-12 text-lg sm:text-xl rounded border-2 border-yellow-400 px-3 tracking-widest"
+            class="square-input w-48 sm:w-64 h-11 sm:h-12 text-lg sm:text-xl rounded border-2 border-yellow-400 px-3 tracking-widest font-mono"
             placeholder="暗号化文字列"
             required
           >
@@ -164,34 +164,56 @@
   </main>
 
   <script>
-    // 五十音表（行シフト用）
-    const GOJUON_TABLE = [
-      ['あ', 'い', 'う', 'え', 'お'],
-      ['か', 'き', 'く', 'け', 'こ'],
-      ['さ', 'し', 'す', 'せ', 'そ'],
-      ['た', 'ち', 'つ', 'て', 'と'],
-      ['な', 'に', 'ぬ', 'ね', 'の'],
-      ['は', 'ひ', 'ふ', 'へ', 'ほ'],
-      ['ま', 'み', 'む', 'め', 'も'],
-      ['や', 'い', 'ゆ', 'え', 'よ'],
-      ['ら', 'り', 'る', 'れ', 'ろ'],
-      ['わ', 'い', 'う', 'え', 'を']
+    // 対象とするひらがな一覧（清音・濁音・半濁音・小文字）
+    const ALL_HIRAGANA = [
+      'あ','い','う','え','お','か','き','く','け','こ',
+      'さ','し','す','せ','そ','た','ち','つ','て','と',
+      'な','に','ぬ','ね','の','は','ひ','ふ','へ','ほ',
+      'ま','み','む','め','も','や','ゆ','よ','ら','り',
+      'る','れ','ろ','わ','を','ん',
+      'が','ぎ','ぐ','げ','ご','ざ','じ','ず','ぜ','ぞ',
+      'だ','ぢ','づ','で','ど','ば','び','ぶ','べ','ぼ',
+      'ぱ','ぴ','ぷ','ぺ','ぽ',
+      'ぁ','ぃ','ぅ','ぇ','ぉ','っ','ゃ','ゅ','ょ','ゎ'
     ];
 
-    const DAKUTEN_MAP = {
-      'が':'か','ぎ':'き','ぐ':'く','げ':'け','ご':'こ',
-      'ざ':'さ','じ':'し','ず':'す','ぜ':'せ','ぞ':'そ',
-      'だ':'た','ぢ':'ち','づ':'つ','で':'て','ど':'と',
-      'ば':'は','び':'ひ','ぶ':'ふ','べ':'へ','ぼ':'ほ',
-      'ぱ':'は','ぴ':'ひ','ぷ':'ふ','ぺ':'へ','ぽ':'ほ'
-    };
+    // 置換候補となる構成要素
+    const LOWER_ALPHABETS = 'abcdefghijklmnopqrstuvwxyz'.split('');
+    const SYMBOLS = "!$%&'()*+,/;<=>?[]^{}~".split('');
 
-    const DAKUTEN_REVERSE = {
-      'か':'が','き':'ぎ','く':'ぐ','け':'げ','こ':'ご',
-      'さ':'ざ','し':'じ','す':'ず','せ':'ぜ','ぞ':'そ',
-      'た':'だ','ち':'ぢ','つ':'づ','て':'で','と':'ど',
-      'は':'ば','ひ':'び','ふ':'ぶ','へ':'べ','ほ':'ぼ'
-    };
+    // 現在のランダム置換マップ
+    let substitutionMap = {};
+
+    // 重複のない「アルファベット一文字＋記号1つ」のペアマップを動的生成
+    function generateSubstitutionMap() {
+      const map = {};
+      const usedPairs = new Set();
+
+      for (const char of ALL_HIRAGANA) {
+        let pair = '';
+        do {
+          const alpha = LOWER_ALPHABETS[Math.floor(Math.random() * LOWER_ALPHABETS.length)];
+          const symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+          pair = alpha + symbol;
+        } while (usedPairs.has(pair));
+
+        usedPairs.add(pair);
+        map[char] = pair;
+      }
+
+      return map;
+    }
+
+    // 文字列を置換マップに基づいて暗号化
+    function encryptTextWithMap(text, map) {
+      if (!text || !map) return '';
+      let encrypted = '';
+      for (const char of text) {
+        // ひらがなマップが存在する場合は変換、存在しない文字はそのまま
+        encrypted += map[char] || char;
+      }
+      return encrypted;
+    }
 
     // DOM要素
     const leftInputs = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'].map(id => document.getElementById(id));
@@ -204,6 +226,9 @@
 
     let currentReadings = null;
     let lastCheckedDigits = "";
+
+    // 初期化時にマップ生成
+    substitutionMap = generateSubstitutionMap();
 
     leftInputs.forEach((input, index) => {
       input.addEventListener('input', () => {
@@ -286,52 +311,6 @@
       });
     });
 
-    function encryptChar(char, shift) {
-      if (char === 'ん') return 'ん';
-      
-      let isDakuten = false;
-      let baseChar = char.normalize('NFKC');
-
-      if (DAKUTEN_MAP[baseChar]) {
-        isDakuten = true;
-        baseChar = DAKUTEN_MAP[baseChar];
-      }
-
-      const smallToBig = {'ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お','ゃ':'や','ゅ':'ゆ','ょ':'よ','っ':'つ'};
-      if (smallToBig[baseChar]) baseChar = smallToBig[baseChar];
-
-      let currentGyou = -1;
-      let currentDan = -1;
-
-      for (let g = 0; g < GOJUON_TABLE.length; g++) {
-        for (let d = 0; d < 5; d++) {
-          if (GOJUON_TABLE[g][d] === baseChar) {
-            currentGyou = g;
-            currentDan = d;
-            break;
-          }
-        }
-        if (currentGyou !== -1) break;
-      }
-
-      if (currentGyou === -1) return char;
-
-      const newGyou = (currentGyou + shift) % GOJUON_TABLE.length;
-      let newChar = GOJUON_TABLE[newGyou][currentDan];
-
-      if (isDakuten && DAKUTEN_REVERSE[newChar]) {
-        newChar = DAKUTEN_REVERSE[newChar];
-      }
-
-      return newChar;
-    }
-
-    function encryptText(text, digits) {
-      if (!text || !digits) return '';
-      const shift = parseInt(digits[0] || '1', 10);
-      return text.split('').map(c => encryptChar(c, shift)).join('');
-    }
-
     async function updateDisplay() {
       const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
       const words = kanjiInputs.map(i => i.value.trim());
@@ -360,7 +339,11 @@
           currentReadings = data.readings;
           lastCheckedDigits = digits;
 
-          const encryptedWords = currentReadings.map(reading => encryptText(reading, digits));
+          // 新しい問題毎・条件成立毎に変換テーブルを生成（必要に応じて毎回ランダム化）
+          substitutionMap = generateSubstitutionMap();
+
+          // 暗号文を生成して表示
+          const encryptedWords = currentReadings.map(reading => encryptTextWithMap(reading, substitutionMap));
           cipherDisplay.innerText = encryptedWords.join(' ');
         } else {
           currentReadings = null;
@@ -391,25 +374,18 @@
         return;
       }
 
-      const correctAnswerBase = encryptText('かいじょう', digits);
+      // 「かいじょう」を同一の置換マップで変換した文字列を正解とする
+      const correctAnswer = encryptTextWithMap('かいじょう', substitutionMap);
       const userInputValue = answerInput.value.trim();
-
-      const validAnswers = [
-        correctAnswerBase,
-        correctAnswerBase.replace(/お$/, 'よう'),
-        'きいちろお',
-        'きいちろよう',
-        'きぢろく'
-      ];
 
       resultDiv.classList.remove('hidden');
 
-      if (validAnswers.includes(userInputValue)) {
+      if (userInputValue === correctAnswer) {
         resultDiv.classList.add('bg-yellow-400', 'text-black', 'border-yellow-400');
         resultDiv.innerHTML = `🎉 解錠成功！<br>正解です！`;
       } else {
         resultDiv.classList.add('bg-red-950', 'text-red-400', 'border-red-800');
-        resultDiv.innerText = '不正解です。「かいじょう」を正しく暗号化した文字列を入力してください。';
+        resultDiv.innerText = '不正解です。暗号文の置換法則を解読して「かいじょう」に対応する文字列を入力してください。';
       }
     });
   </script>
