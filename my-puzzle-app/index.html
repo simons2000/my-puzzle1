@@ -26,25 +26,21 @@
       <p class="text-xs sm:text-sm text-slate-500 mb-5">足し算の左辺に数字を入れると、右辺が自動的に計算されます。</p>
       
       <div class="flex flex-wrap items-center justify-center gap-1 sm:gap-2 text-xl font-bold">
-        <!-- 23 -->
         <div class="flex shadow-sm">
           <input type="text" maxlength="1" class="step1-left-in w-9 h-11 text-center border border-slate-400 rounded-none bg-white focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
           <input type="text" maxlength="1" class="step1-left-in w-9 h-11 text-center border-t border-b border-r border-slate-400 rounded-none bg-white focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
         </div>
         <span class="text-slate-400 font-normal px-1">+</span>
-        <!-- 38 -->
         <div class="flex shadow-sm">
           <input type="text" maxlength="1" class="step1-left-in w-9 h-11 text-center border border-slate-400 rounded-none bg-white focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
           <input type="text" maxlength="1" class="step1-left-in w-9 h-11 text-center border-t border-b border-r border-slate-400 rounded-none bg-white focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
         </div>
         <span class="text-slate-400 font-normal px-1">+</span>
-        <!-- 94 -->
         <div class="flex shadow-sm">
           <input type="text" maxlength="1" class="step1-left-in w-9 h-11 text-center border border-slate-400 rounded-none bg-white focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
           <input type="text" maxlength="1" class="step1-left-in w-9 h-11 text-center border-t border-b border-r border-slate-400 rounded-none bg-white focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
         </div>
         <span class="text-slate-400 font-normal px-1">=</span>
-        <!-- 右辺（自動入力・ロック） -->
         <div class="flex shadow-sm opacity-80">
           <input type="text" maxlength="1" readonly class="step1-right-in w-9 h-11 text-center border border-slate-400 rounded-none bg-slate-200 font-mono text-slate-600 select-none cursor-not-allowed">
           <input type="text" maxlength="1" readonly class="step1-right-in w-9 h-11 text-center border-t border-b border-slate-400 bg-slate-200 font-mono text-slate-600 select-none cursor-not-allowed">
@@ -65,8 +61,7 @@
       <p class="text-xs sm:text-sm text-slate-500 mb-5">各文字の画数がSTEP 1の数字（全9桁）と一致する熟語を入力してください。</p>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-        
-        <!-- 熟語 1（2文字） -->
+        <!-- 熟語 1 -->
         <div class="flex flex-col items-center bg-white p-3 border border-slate-300 rounded-none shadow-sm">
           <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-none mb-2 border border-blue-200">2字熟語</span>
           <input type="text" maxlength="2" class="step2-word-in w-full h-11 text-center border border-slate-400 rounded-none bg-white text-lg font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="漢字2文字">
@@ -75,7 +70,7 @@
           </div>
         </div>
 
-        <!-- 熟語 2（2文字） -->
+        <!-- 熟語 2 -->
         <div class="flex flex-col items-center bg-white p-3 border border-slate-300 rounded-none shadow-sm">
           <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-none mb-2 border border-blue-200">2字熟語</span>
           <input type="text" maxlength="2" class="step2-word-in w-full h-11 text-center border border-slate-400 rounded-none bg-white text-lg font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="漢字2文字">
@@ -84,7 +79,7 @@
           </div>
         </div>
 
-        <!-- 熟語 3（2文字） -->
+        <!-- 熟語 3 -->
         <div class="flex flex-col items-center bg-white p-3 border border-slate-300 rounded-none shadow-sm">
           <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-none mb-2 border border-blue-200">2字熟語</span>
           <input type="text" maxlength="2" class="step2-word-in w-full h-11 text-center border border-slate-400 rounded-none bg-white text-lg font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="漢字2文字">
@@ -93,7 +88,7 @@
           </div>
         </div>
 
-        <!-- 熟語 4（3文字） -->
+        <!-- 熟語 4 -->
         <div class="flex flex-col items-center bg-white p-3 border border-slate-300 rounded-none shadow-sm">
           <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-none mb-2 border border-emerald-200">3字熟語</span>
           <input type="text" maxlength="3" class="step2-word-in w-full h-11 text-center border border-slate-400 rounded-none bg-white text-lg font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="漢字3文字">
@@ -101,7 +96,6 @@
             <span class="stroke-hint">-画</span>・<span class="stroke-hint">-画</span>・<span class="stroke-hint">-画</span>
           </div>
         </div>
-
       </div>
 
       <div id="step2-msg" class="text-xs sm:text-sm text-red-500 font-medium text-center min-h-[1.25rem]"></div>
@@ -132,7 +126,6 @@
   </div>
 
   <script>
-    // 1. シフト暗号テーブル
     const cipherMap = {
       'あ':'い','い':'う','う':'え','え':'お','お':'か','か':'き','き':'く','く':'け','け':'こ','こ':'さ',
       'さ':'し','し':'す','す':'せ','せ':'そ','そ':'た','た':'ち','ち':'つ','つ':'て','て':'と','と':'な',
@@ -142,51 +135,25 @@
       'っ':'っ','ー':'ー'
     };
 
-    // 2. 正確な画数辞書
-    const strokeDict = {
-      '一': 1,
-      '人': 2, '入': 2, '八': 2, '九': 2, '七': 2, '力': 2, '十': 2,
-      '口': 3, '大': 3, '小': 3, '山': 3, '川': 3, '女': 3, '子': 3, '三': 3, '千': 3,
-      '月': 4, '日': 4, '水': 4, '木': 4, '火': 4, '天': 4, '文': 4, '心': 4, '手': 4, '中': 4,
-      '生': 5, '立': 5, '目': 5, '田': 5, '右': 5, '左': 5, '本': 5, '白': 5, '玉': 5, '学': 5,
-      '気': 6, '字': 6, '竹': 6, '名': 6, '百': 6, '先': 6, '早': 6, '虫': 6, '交': 6,
-      '角': 7, '町': 7, '花': 7, '見': 7, '貝': 7, '赤': 7, '足': 7, '車': 7, '男': 7,
-      '金': 8, '雨': 8, '命': 8, '青': 8, '林': 8, '空': 8, '知': 8, '長': 8,
-      '風': 9, '海': 9, '音': 9, '草': 9, '食': 9, '首': 9, '面': 9, '春': 9, '秋': 9
-    };
-
-    // 3. 熟語対応辞書
-    const kanjiReadingMap = {
-      '人口': 'じんこう',
-      '大金': 'たいきん',
-      '風水': 'ふうすい',
-      '一学生': 'いちがくせい'
-    };
-
     let wordReadings = [];
 
-    // STEP 1 用：1文字入力で自動移動するオートアドバンス
-    function setupStep1AutoAdvance(inputs) {
-      inputs.forEach((input, index) => {
-        input.addEventListener('input', () => {
-          if (input.value.length === 1 && index < inputs.length - 1) {
-            inputs[index + 1].focus();
-          }
-        });
-
-        input.addEventListener('keydown', (e) => {
-          if (e.key === 'Backspace' && input.value === '' && index > 0) {
-            inputs[index - 1].focus();
-          }
-        });
-      });
-    }
-
-    // STEP 1 セットアップ
+    // STEP 1 自動フォーカス
     const s1LeftInputs  = Array.from(document.querySelectorAll('.step1-left-in'));
     const s1RightInputs = Array.from(document.querySelectorAll('.step1-right-in'));
-    setupStep1AutoAdvance(s1LeftInputs);
-    s1LeftInputs.forEach(input => input.addEventListener('input', checkStep1));
+
+    s1LeftInputs.forEach((input, index) => {
+      input.addEventListener('input', () => {
+        if (input.value.length === 1 && index < s1LeftInputs.length - 1) {
+          s1LeftInputs[index + 1].focus();
+        }
+        checkStep1();
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && input.value === '' && index > 0) {
+          s1LeftInputs[index - 1].focus();
+        }
+      });
+    });
 
     function checkStep1() {
       const vals = s1LeftInputs.map(i => i.value.trim());
@@ -225,86 +192,72 @@
     }
 
     function unlockStep2() {
-      const el = document.getElementById('step2-container');
-      if (el) el.classList.remove('opacity-40', 'pointer-events-none');
+      document.getElementById('step2-container').classList.remove('opacity-40', 'pointer-events-none');
     }
     function lockStep2() {
-      const el = document.getElementById('step2-container');
-      if (el) el.classList.add('opacity-40', 'pointer-events-none');
+      document.getElementById('step2-container').classList.add('opacity-40', 'pointer-events-none');
       document.getElementById('step2-mark').innerText = "⬜";
       lockStep3();
     }
 
-    // STEP 2 セットアップ
+    // STEP 2 API判定処理
     const s2Inputs = Array.from(document.querySelectorAll('.step2-word-in'));
-    s2Inputs.forEach(input => {
-      input.addEventListener('input', checkStep2);
-    });
+    s2Inputs.forEach(input => input.addEventListener('input', checkStep2));
 
-    function getAllStep1Digits() {
-      const left  = s1LeftInputs.map(i => i.value.trim());
-      const right = s1RightInputs.map(i => i.value.trim());
-      return [...left, ...right];
-    }
+    let checkTimeout = null;
 
     function checkStep2() {
       const words = s2Inputs.map(i => i.value.trim());
       const msgEl = document.getElementById('step2-msg');
-      if (msgEl) msgEl.innerText = "";
+      msgEl.innerText = "";
 
-      // 4箇所の熟語入力が完成しているかチェック
       if (words.some(w => w === "")) return;
 
-      // 文字数の簡易チェック（2字、2字、2字、3字）
       if (words[0].length !== 2 || words[1].length !== 2 || words[2].length !== 2 || words[3].length !== 3) {
-        if (msgEl) msgEl.innerText = "各入力欄に指定された文字数（2字／3字）を入力してください";
+        msgEl.innerText = "指定の文字数（2字／3字）を入力してください";
         return;
       }
 
-      // 全漢字を1文字ずつの配列に分解
-      const kanjis = words.join('').split('');
-      const targetDigits = getAllStep1Digits();
+      const targetDigits = [...s1LeftInputs.map(i => i.value.trim()), ...s1RightInputs.map(i => i.value.trim())];
 
-      // 画数判定
-      for (let i = 0; i < 9; i++) {
-        const targetStroke = parseInt(targetDigits[i]);
-        const k = kanjis[i];
-        const stroke = strokeDict[k];
+      msgEl.innerText = "判定中...";
 
-        if (!stroke) {
-          if (msgEl) msgEl.innerText = `「${k}」の画数データが見つかりません`;
-          return;
+      // 連打防止のため少し待ってからAPI送信
+      clearTimeout(checkTimeout);
+      checkTimeout = setTimeout(async () => {
+        try {
+          const response = await fetch('/api/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ words, targetDigits })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            msgEl.innerText = data.error || "不正な漢字または画数が一致しません";
+            document.getElementById('step2-mark').innerText = "⬜";
+            lockStep3();
+            return;
+          }
+
+          // 正解
+          msgEl.innerText = "";
+          wordReadings = data.readings;
+          document.getElementById('step2-mark').innerText = "✅";
+          unlockStep3();
+
+        } catch (err) {
+          msgEl.innerText = "通信エラーが発生しました。Vercelサーバーを確認してください。";
         }
-        if (stroke !== targetStroke) {
-          if (msgEl) msgEl.innerText = `${i+1}文字目「${k}」は${stroke}画ですが、指定は${targetStroke}画です`;
-          return;
-        }
-      }
-
-      // 熟語辞書チェック
-      const r1 = kanjiReadingMap[words[0]];
-      const r2 = kanjiReadingMap[words[1]];
-      const r3 = kanjiReadingMap[words[2]];
-      const r4 = kanjiReadingMap[words[3]];
-
-      if (!r1 || !r2 || !r3 || !r4) {
-        if (msgEl) msgEl.innerText = "実在する正しい熟語を入力してください";
-        return;
-      }
-
-      wordReadings = [r1, r2, r3, r4];
-
-      const mark = document.getElementById('step2-mark');
-      if (mark) mark.innerText = "✅";
-      unlockStep3();
+      }, 500);
     }
 
-    // STEP 3 暗号生成 & 最終チェック
+    // STEP 3
     function unlockStep3() {
-      const el = document.getElementById('step3-container');
-      if (el) el.classList.remove('opacity-40', 'pointer-events-none');
+      document.getElementById('step3-container').classList.remove('opacity-40', 'pointer-events-none');
 
-      const plainSpaced  = wordReadings.join(' ');
+      const plainSpaced = wordReadings.join(' ');
       const cipherSpaced = wordReadings.map(word => {
         let cipherWord = "";
         for (let char of word) {
@@ -313,48 +266,34 @@
         return cipherWord;
       }).join(' ');
 
-      const hintEl   = document.getElementById('plain-hint');
-      const cipherEl = document.getElementById('cipher-output');
-      if (hintEl) hintEl.innerText = plainSpaced;
-      if (cipherEl) cipherEl.innerText = cipherSpaced;
+      document.getElementById('plain-hint').innerText = plainSpaced;
+      document.getElementById('cipher-output').innerText = cipherSpaced;
     }
 
     function lockStep3() {
-      const el = document.getElementById('step3-container');
-      if (el) el.classList.add('opacity-40', 'pointer-events-none');
+      document.getElementById('step3-container').classList.add('opacity-40', 'pointer-events-none');
       document.getElementById('step3-mark').innerText = "⬜";
-      
-      const hintEl   = document.getElementById('plain-hint');
-      const cipherEl = document.getElementById('cipher-output');
-      if (hintEl) hintEl.innerText = "（STEP 2クリアで表示）";
-      if (cipherEl) cipherEl.innerText = "（STEP 2クリアで表示）";
+      document.getElementById('plain-hint').innerText = "（STEP 2クリアで表示）";
+      document.getElementById('cipher-output').innerText = "（STEP 2クリアで表示）";
     }
 
-    const submitBtn = document.getElementById('submit-btn');
-    if (submitBtn) {
-      submitBtn.addEventListener('click', () => {
-        const userAns = document.getElementById('final-answer').value.trim();
-        
-        const targetWord = "こたえ";
-        let expectedAnswer = "";
-        for (let char of targetWord) {
-          expectedAnswer += cipherMap[char] || char;
-        }
+    document.getElementById('submit-btn').addEventListener('click', () => {
+      const userAns = document.getElementById('final-answer').value.trim();
+      const targetWord = "こたえ";
+      let expectedAnswer = "";
+      for (let char of targetWord) {
+        expectedAnswer += cipherMap[char] || char;
+      }
 
-        if (userAns !== "" && userAns === expectedAnswer) {
-          if (typeof confetti === 'function') {
-            confetti({
-              particleCount: 120,
-              spread: 70,
-              origin: { y: 0.6 }
-            });
-          }
-          alert("🎉 CLEAR！おめでとうございます！暗号法則の解読成功です！");
-        } else {
-          alert("❌ 「こたえ」の暗号文が違います。ヒントからルールを推測して変換してください。");
+      if (userAns !== "" && userAns === expectedAnswer) {
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
         }
-      });
-    }
+        alert("🎉 CLEAR！どんな漢字・熟語も判定できるWebアプリの完成です！");
+      } else {
+        alert("❌ 「こたえ」の暗号文が違います。ヒントからルールを推測して変換してください。");
+      }
+    });
   </script>
 </body>
 </html>
