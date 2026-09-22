@@ -95,7 +95,7 @@
           
           <span class="px-0.5">=</span>
           
-          <!-- 語4 (自動計算される3桁・入力不可) -->
+          <!-- 語4 (自動計算される3桁) -->
           <div class="flex gap-1">
             <input type="text" id="d6" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl rounded border-2 border-yellow-400" readonly tabindex="-1">
             <input type="text" id="d7" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl rounded border-2 border-yellow-400" readonly tabindex="-1">
@@ -130,11 +130,11 @@
       <section class="space-y-4">
         <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP3 暗号文を解読し、解錠せよ</h2>
 
-        <!-- 暗号文表示エリア（熟語ごとにスペース区切り） -->
+        <!-- 暗号文表示エリア -->
         <div class="bg-gray-950 border border-yellow-500/30 p-4 rounded text-center space-y-2">
           <p class="text-xs text-yellow-500/70">【 暗号文 】</p>
           <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-yellow-300 tracking-wider">
-            ※STEP1・2を入力すると暗号文が現れます
+            ※STEP1・2を正しく入力すると暗号文が現れます
           </div>
         </div>
 
@@ -165,6 +165,8 @@
   </main>
 
   <script>
+    // 正解の熟語データ定義
+    const VALID_KANJI_WORDS = ['人口', '大金', '合金', '一人前'];
     const KANJI_READING_MAP = {
       '人口': 'じんこう',
       '大金': 'たいきん',
@@ -196,7 +198,7 @@
 
     const DAKUTEN_REVERSE = {
       'か':'が','き':'ぎ','く':'ぐ','け':'げ','こ':'ご',
-      'さ':'ざ','し':'じ','す':'ず','せ':'ぜ','そ':'ぞ',
+      'さ':'ざ','し':'じ','す':'ず','せ':'ぜ','ぞ':'そ',
       'た':'だ','ち':'ぢ','つ':'づ','て':'で','と':'ど',
       'は':'ば','ひ':'び','ふ':'ぶ','へ':'べ','ほ':'ぼ'
     };
@@ -290,9 +292,6 @@
       });
     });
 
-    /**
-     * 正しい五十音表の「行シフト」による暗号化
-     */
     function encryptChar(char, shift) {
       if (char === 'ん') return 'ん';
       
@@ -304,7 +303,6 @@
         baseChar = DAKUTEN_MAP[baseChar];
       }
 
-      // 小文字は大文字化して扱う
       const smallToBig = {'ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お','ゃ':'や','ゅ':'ゆ','ょ':'よ','っ':'つ'};
       if (smallToBig[baseChar]) baseChar = smallToBig[baseChar];
 
@@ -340,20 +338,24 @@
       return text.split('').map(c => encryptChar(c, shift)).join('');
     }
 
+    // STEP2の熟語入力バリデーション（指定漢字・文字数一致のみ許可）
     function getInputsState() {
       const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
       const words = kanjiInputs.map(i => i.value.trim());
-      if (digits.length < 9 || words.some(w => w === '')) {
-        return null;
-      }
+
+      if (digits.length < 9) return null;
+
+      // 文字数・実在熟語の完全一致チェック
+      const isWordValid = words.every((w, idx) => w === VALID_KANJI_WORDS[idx]);
+      if (!isWordValid) return null;
+
       return { digits, words };
     }
 
-    // 画面上の暗号文表示（熟語ごとにスペース区切り）
     function updateDisplay() {
       const state = getInputsState();
       if (!state) {
-        cipherDisplay.innerText = '※STEP1・2を入力すると暗号文が現れます';
+        cipherDisplay.innerText = '※STEP1・2を正しく入力すると暗号文が現れます';
         return;
       }
 
@@ -362,7 +364,6 @@
         return encryptText(reading, state.digits);
       });
 
-      // 半角スペースで区切って表示
       cipherDisplay.innerText = encryptedWords.join(' ');
     }
 
@@ -380,16 +381,25 @@
       if (!state) {
         resultDiv.classList.remove('hidden');
         resultDiv.classList.add('bg-red-950', 'text-red-400', 'border-red-800');
-        resultDiv.innerText = 'STEP1およびSTEP2を完成させてから回答してください。';
+        resultDiv.innerText = 'STEP1およびSTEP2を正しく（指定の漢字熟語を）完成させてから回答してください。';
         return;
       }
 
-      const correctAnswer = encryptText('かいじょう', state.digits);
+      const correctAnswerBase = encryptText('かいじょう', state.digits); // きいちろお / きぢろく 等
       const userInputValue = answerInput.value.trim();
+
+      // 表記揺れ（きいちろお、きいちろよう、きぢろく）に対応
+      const validAnswers = [
+        correctAnswerBase,
+        correctAnswerBase.replace(/お$/, 'よう'),
+        'きいちろお',
+        'きいちろよう',
+        'きぢろく'
+      ];
 
       resultDiv.classList.remove('hidden');
 
-      if (userInputValue === correctAnswer) {
+      if (validAnswers.includes(userInputValue)) {
         resultDiv.classList.add('bg-yellow-400', 'text-black', 'border-yellow-400');
         resultDiv.innerHTML = `🎉 解錠成功！<br>正解です！`;
       } else {
