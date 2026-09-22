@@ -164,13 +164,23 @@
   </main>
 
   <script>
-    // 正解の熟語データ定義
-    const VALID_KANJI_WORDS = ['人口', '大金', '合金', '一人前'];
-    const KANJI_READING_MAP = {
+    // 漢字の画数データベース（主要漢字および入力想定漢字）
+    const STROKE_COUNT_MAP = {
+      '人': 2, '口': 3, '大': 3, '金': 8, '合': 6, '一': 1, '本': 5, '気': 6,
+      '事': 8, '少': 4, '年': 6, '怪': 8, '前': 9, '手': 4, '目': 5, '耳': 6,
+      '心': 4, '力': 2, '水': 4, '火': 4, '木': 4, '土': 3, '日': 4, '月': 4
+    };
+
+    // 読み辞書（標準的なひらがな読み）
+    const DYNAMIC_READING_MAP = {
       '人口': 'じんこう',
       '大金': 'たいきん',
       '合金': 'ごうきん',
-      '一人前': 'いちにんまえ'
+      '一人前': 'いちにんまえ',
+      '人事': 'じんじ',
+      '少年': 'しょうねん',
+      '怪人': 'かいじん',
+      '一本気': 'いっぽんぎ'
     };
 
     // 五十音表（行シフト用）
@@ -291,6 +301,19 @@
       });
     });
 
+    // 漢字文字列の総画数を判定
+    function getWordStrokes(word) {
+      let total = 0;
+      for (const char of word) {
+        if (STROKE_COUNT_MAP[char] !== undefined) {
+          total += STROKE_COUNT_MAP[char];
+        } else {
+          return null; // 画数未登録の場合
+        }
+      }
+      return total;
+    }
+
     function encryptChar(char, shift) {
       if (char === 'ん') return 'ん';
       
@@ -337,14 +360,31 @@
       return text.split('').map(c => encryptChar(c, shift)).join('');
     }
 
+    // 画数・文字数および数字条件に一致しているか判定
     function getInputsState() {
       const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
       const words = kanjiInputs.map(i => i.value.trim());
 
       if (digits.length < 9) return null;
 
-      const isWordValid = words.every((w, idx) => w === VALID_KANJI_WORDS[idx]);
-      if (!isWordValid) return null;
+      // STEP1の各項の数値を取得 (例: 28, 46, 82)
+      const targetStrokes = [
+        parseInt(leftInputs[0].value + leftInputs[1].value, 10),
+        parseInt(leftInputs[2].value + leftInputs[3].value, 10),
+        parseInt(leftInputs[4].value + leftInputs[5].value, 10),
+        parseInt(rightInputs[0].value + rightInputs[1].value + rightInputs[2].value, 10)
+      ];
+
+      // 各熟語の画数計算と一致確認
+      for (let i = 0; i < 4; i++) {
+        const word = words[i];
+        if (!word) return null;
+
+        const strokes = getWordStrokes(word);
+        if (strokes === null || strokes !== targetStrokes[i]) {
+          return null;
+        }
+      }
 
       return { digits, words };
     }
@@ -357,7 +397,7 @@
       }
 
       const encryptedWords = state.words.map(word => {
-        const reading = KANJI_READING_MAP[word] || word;
+        const reading = DYNAMIC_READING_MAP[word] || word;
         return encryptText(reading, state.digits);
       });
 
@@ -378,7 +418,7 @@
       if (!state) {
         resultDiv.classList.remove('hidden');
         resultDiv.classList.add('bg-red-950', 'text-red-400', 'border-red-800');
-        resultDiv.innerText = 'STEP1およびSTEP2を正しく（指定の漢字熟語を）完成させてから回答してください。';
+        resultDiv.innerText = 'STEP1の数字とSTEP2の熟語（画数・文字数）が正しく対応していません。';
         return;
       }
 
