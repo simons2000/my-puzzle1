@@ -134,8 +134,13 @@
         </div>
       </section>
 
+      <!-- STEP2 と STEP3 の間の下矢印 (STEP2クリア判定開始で表示) -->
+      <div id="arrowDivider" class="hidden text-center py-1 fade-in">
+        <span class="text-2xl font-bold text-green-400">⇩</span>
+      </div>
+
       <!-- STEP 3 (STEP2クリア判定開始で表示) -->
-      <section id="step3Section" class="hidden space-y-4 pt-4 border-t border-green-500/20 fade-in">
+      <section id="step3Section" class="hidden space-y-4 fade-in">
         <h2 class="text-base sm:text-lg font-bold text-green-400">STEP3 暗号文を解読し、解錠せよ</h2>
 
         <!-- 暗号文表示エリア -->
@@ -144,9 +149,9 @@
           <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-green-300 tracking-wider min-h-[28px] flex items-center justify-center"></div>
         </div>
 
-        <!-- 解錠 ＝ 入力欄 -->
+        <!-- 解錠 ➔ 入力欄 -->
         <div class="flex items-center justify-center gap-3 pt-2">
-          <span class="text-xl sm:text-2xl font-extrabold text-green-400">解錠 ＝</span>
+          <span class="text-xl sm:text-2xl font-extrabold text-green-400">解錠 ➔</span>
           <input 
             type="text" 
             id="answerInput" 
@@ -221,6 +226,7 @@
     const kanjiInputs = ['w1', 'w2', 'w3', 'w4'].map(id => document.getElementById(id));
     
     const step2Section = document.getElementById('step2Section');
+    const arrowDivider = document.getElementById('arrowDivider');
     const step3Section = document.getElementById('step3Section');
     const cipherDisplay = document.getElementById('cipherDisplay');
     const answerInput = document.getElementById('answerInput');
@@ -228,7 +234,7 @@
 
     let currentReadings = null;
     let lastCheckedDigits = "";
-    let fetchRequestId = 0; // 非同期通信の競合を防ぐID
+    let fetchRequestId = 0;
 
     substitutionMap = generateSubstitutionMap();
 
@@ -311,12 +317,16 @@
     });
 
     function showStep3() {
+      if (arrowDivider.classList.contains('hidden')) {
+        arrowDivider.classList.remove('hidden');
+      }
       if (step3Section.classList.contains('hidden')) {
         step3Section.classList.remove('hidden');
       }
     }
 
     function hideStep3() {
+      arrowDivider.classList.add('hidden');
       step3Section.classList.add('hidden');
       currentReadings = null;
       answerInput.value = '';
@@ -337,14 +347,13 @@
         return;
       }
 
-      // 1. STEP2が揃ったらまずSTEP3を表示して "generating..." をセット
+      // STEP2入力完了時に下矢印とSTEP3を表示
       showStep3();
       cipherDisplay.innerText = 'generating...';
       cipherDisplay.classList.add('pulse-loading', 'text-yellow-400');
       cipherDisplay.classList.remove('text-green-300');
       submitBtn.disabled = true;
 
-      // 通信の競合対策用ID
       const currentRequestId = ++fetchRequestId;
 
       try {
@@ -354,7 +363,6 @@
           body: JSON.stringify({ words, targetDigits: digits })
         });
 
-        // 途中で入力内容が変わった場合は処理をキャンセル
         if (currentRequestId !== fetchRequestId) return;
 
         const data = await res.json();
@@ -367,13 +375,11 @@
 
           const encryptedWords = currentReadings.map(reading => encryptTextWithMap(reading, substitutionMap));
           
-          // 暗号文生成完了
           cipherDisplay.classList.remove('pulse-loading', 'text-yellow-400');
           cipherDisplay.classList.add('text-green-300');
           cipherDisplay.innerText = encryptedWords.join(' ');
           submitBtn.disabled = false;
         } else {
-          // 条件を満たさない場合（不一致・実在しない熟語など）
           hideStep3();
         }
       } catch (err) {
