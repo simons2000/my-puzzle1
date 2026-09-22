@@ -30,27 +30,10 @@
       border-color: #444444 !important;
     }
 
-    /* STEP2の熟語ブロック枠 */
-    .word-block {
-      display: inline-flex;
-      border: 2px solid #facc15;
-      border-radius: 4px;
-      overflow: hidden;
-      background-color: #ffffff;
-    }
-    
-    .word-block.disabled {
-      border-color: #444444;
-      opacity: 0.4;
-    }
-
-    .word-block input {
-      border: none;
-      border-right: 1px solid #e5e7eb; /* 熟語内の薄い区切り線 */
-    }
-
-    .word-block input:last-child {
-      border-right: none;
+    /* 熟語入力マス（文字間隔を広げて原稿用紙風にするスタイル） */
+    .word-input {
+      letter-spacing: 0.2em;
+      padding-left: 0.2em; /* 文字の中央揃え調整 */
     }
   </style>
 </head>
@@ -110,32 +93,19 @@
           <span id="step2LockMsg" class="text-xs text-red-400 font-normal">※STEP1を完成させてください</span>
         </div>
 
-        <!-- 熟語ごとに繋がったブロック構造 -->
+        <!-- 熟語ごとに1つの入力欄（2文字・2文字・2文字・3文字） -->
         <div class="flex items-center justify-center gap-2 sm:gap-4 overflow-x-auto py-2">
-          <!-- 熟語1 (2文字ブロック) -->
-          <div class="word-block disabled" id="wb1">
-            <input type="text" id="w1_1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-            <input type="text" id="w1_2" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-          </div>
+          <!-- 熟語1 (2文字入力欄) -->
+          <input type="text" id="w1" maxlength="2" class="square-input word-input w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
 
-          <!-- 熟語2 (2文字ブロック) -->
-          <div class="word-block disabled" id="wb2">
-            <input type="text" id="w2_1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-            <input type="text" id="w2_2" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-          </div>
+          <!-- 熟語2 (2文字入力欄) -->
+          <input type="text" id="w2" maxlength="2" class="square-input word-input w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
 
-          <!-- 熟語3 (2文字ブロック) -->
-          <div class="word-block disabled" id="wb3">
-            <input type="text" id="w3_1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-            <input type="text" id="w3_2" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-          </div>
+          <!-- 熟語3 (2文字入力欄) -->
+          <input type="text" id="w3" maxlength="2" class="square-input word-input w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
 
-          <!-- 熟語4 (3文字ブロック) -->
-          <div class="word-block disabled" id="wb4">
-            <input type="text" id="w4_1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-            <input type="text" id="w4_2" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-            <input type="text" id="w4_3" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-          </div>
+          <!-- 熟語4 (3文字入力欄) -->
+          <input type="text" id="w4" maxlength="3" class="square-input word-input w-24 h-9 sm:w-28 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
         </div>
       </section>
 
@@ -169,12 +139,10 @@
     const leftInputs = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'].map(id => document.getElementById(id));
     const rightInputs = ['d6', 'd7', 'd8'].map(id => document.getElementById(id));
 
-    // STEP2: 漢字入力欄・セクション要素
-    const kanjiInputIds = ['w1_1', 'w1_2', 'w2_1', 'w2_2', 'w3_1', 'w3_2', 'w4_1', 'w4_2', 'w4_3'];
-    const kanjiInputs = kanjiInputIds.map(id => document.getElementById(id));
+    // STEP2: 漢字熟語入力欄（4つ）
+    const kanjiInputs = ['w1', 'w2', 'w3', 'w4'].map(id => document.getElementById(id));
     const step2Section = document.getElementById('step2Section');
     const step2LockMsg = document.getElementById('step2LockMsg');
-    const wordBlocks = ['wb1', 'wb2', 'wb3', 'wb4'].map(id => document.getElementById(id));
 
     // STEP1の入力・自動計算イベント処理
     leftInputs.forEach((input, index) => {
@@ -225,38 +193,37 @@
     function unlockStep2() {
       step2Section.classList.remove('opacity-50', 'pointer-events-none');
       step2LockMsg.classList.add('hidden');
-      wordBlocks.forEach(wb => wb.classList.remove('disabled'));
       kanjiInputs.forEach(input => input.disabled = false);
     }
 
     function lockStep2() {
       step2Section.classList.add('opacity-50', 'pointer-events-none');
       step2LockMsg.classList.remove('hidden');
-      wordBlocks.forEach(wb => wb.classList.add('disabled'));
       kanjiInputs.forEach(input => {
         input.disabled = true;
         input.value = '';
       });
     }
 
-    // STEP2: 日本語入力の確定（変換完了）時のみ次のマスへ移動
+    // STEP2: 熟語の規定文字数に達したら次の入力欄へ移動
     kanjiInputs.forEach((input, index) => {
-      // 変換確定イベント
+      const targetLength = parseInt(input.getAttribute('maxlength'), 10);
+
+      const checkAndMove = () => {
+        if (input.value.length >= targetLength && index < kanjiInputs.length - 1) {
+          kanjiInputs[index + 1].focus();
+        }
+      };
+
       input.addEventListener('compositionend', () => {
-        setTimeout(() => {
-          if (input.value.length > 0) {
-            // 最後の1文字を残す
-            if (input.value.length > 1) {
-              input.value = input.value.slice(-1);
-            }
-            if (index < kanjiInputs.length - 1) {
-              kanjiInputs[index + 1].focus();
-            }
-          }
-        }, 10);
+        setTimeout(checkAndMove, 10);
       });
 
-      // バックスペースでの逆移動
+      input.addEventListener('input', () => {
+        // IME使用中（未確定）でなければ判定
+        checkAndMove();
+      });
+
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Backspace' && !input.value && index > 0) {
           kanjiInputs[index - 1].focus();
@@ -281,13 +248,8 @@
       // 1. 数字の結合 (9桁)
       const targetDigits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
 
-      // 2. 熟語の結合 (4つ)
-      const words = [
-        document.getElementById('w1_1').value.trim() + document.getElementById('w1_2').value.trim(),
-        document.getElementById('w2_1').value.trim() + document.getElementById('w2_2').value.trim(),
-        document.getElementById('w3_1').value.trim() + document.getElementById('w3_2').value.trim(),
-        document.getElementById('w4_1').value.trim() + document.getElementById('w4_2').value.trim() + document.getElementById('w4_3').value.trim()
-      ];
+      // 2. 熟語の取得 (4つ)
+      const words = kanjiInputs.map(i => i.value.trim());
 
       try {
         const response = await fetch('/api/check', {
