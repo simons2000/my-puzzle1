@@ -131,7 +131,7 @@
       <section class="space-y-4">
         <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP3 暗号文を解読し、解錠せよ</h2>
 
-        <!-- 暗号文表示エリア (分かち書き) -->
+        <!-- 暗号文表示エリア (置換後の暗号文・分かち書き) -->
         <div class="bg-gray-950 border border-yellow-500/30 p-4 rounded text-center space-y-2">
           <p class="text-xs text-yellow-500/70">【 暗号文 】</p>
           <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-yellow-300 tracking-wider">
@@ -189,7 +189,7 @@
         }
 
         calculateStep1();
-        updateCipher();
+        fetchAndRenderCipher();
       });
 
       input.addEventListener('keydown', (e) => {
@@ -252,13 +252,13 @@
       input.addEventListener('compositionend', () => {
         isComposing = false;
         checkAndMove();
-        updateCipher();
+        fetchAndRenderCipher();
       });
 
       input.addEventListener('input', () => {
         if (!isComposing) {
           checkAndMove();
-          updateCipher();
+          fetchAndRenderCipher();
         }
       });
 
@@ -276,19 +276,31 @@
       });
     });
 
-    // リアルタイム暗号文の作成・更新（分かち書き形式）
-    function updateCipher() {
+    // サーバーへ問い合わせて置換後の暗号文を取得し表示
+    async function fetchAndRenderCipher() {
       const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
       const words = kanjiInputs.map(i => i.value.trim());
 
-      // 入力が揃っていない場合
       if (digits.length < 9 || words.some(w => w === '')) {
         cipherDisplay.innerText = '※STEP1・2を入力すると暗号文が現れます';
         return;
       }
 
-      // 暗号文を分かち書き形式で表示
-      cipherDisplay.innerText = `${words[0]} / ${words[1]} / ${words[2]} / ${words[3]}`;
+      try {
+        const res = await fetch('/api/cipher', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetDigits: digits, words })
+        });
+        const data = await res.json();
+        if (data.cipherText) {
+          cipherDisplay.innerText = data.cipherText;
+        } else {
+          cipherDisplay.innerText = '※STEP1・2の入力内容が正しくありません';
+        }
+      } catch (err) {
+        cipherDisplay.innerText = '※暗号文の生成中にエラーが発生しました';
+      }
     }
 
     // フォーム検証・送信処理
