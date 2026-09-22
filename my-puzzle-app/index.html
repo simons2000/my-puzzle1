@@ -114,27 +114,27 @@
         <div class="flex items-center justify-center gap-2 sm:gap-4 overflow-x-auto py-2">
           <!-- 熟語1 (2文字ブロック) -->
           <div class="word-block disabled" id="wb1">
-            <input type="text" id="w1_1" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-            <input type="text" id="w1_2" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
+            <input type="text" id="w1_1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
+            <input type="text" id="w1_2" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
           </div>
 
           <!-- 熟語2 (2文字ブロック) -->
           <div class="word-block disabled" id="wb2">
-            <input type="text" id="w2_1" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-            <input type="text" id="w2_2" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
+            <input type="text" id="w2_1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
+            <input type="text" id="w2_2" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
           </div>
 
           <!-- 熟語3 (2文字ブロック) -->
           <div class="word-block disabled" id="wb3">
-            <input type="text" id="w3_1" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-            <input type="text" id="w3_2" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
+            <input type="text" id="w3_1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
+            <input type="text" id="w3_2" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
           </div>
 
           <!-- 熟語4 (3文字ブロック) -->
           <div class="word-block disabled" id="wb4">
-            <input type="text" id="w4_1" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-            <input type="text" id="w4_2" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
-            <input type="text" id="w4_3" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
+            <input type="text" id="w4_1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
+            <input type="text" id="w4_2" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
+            <input type="text" id="w4_3" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" disabled required>
           </div>
         </div>
       </section>
@@ -181,7 +181,6 @@
       input.addEventListener('input', () => {
         input.value = input.value.replace(/[^0-9]/g, '');
         
-        // フォーカス移動
         if (input.value && index < leftInputs.length - 1) {
           leftInputs[index + 1].focus();
         }
@@ -196,7 +195,7 @@
       });
     });
 
-    // STEP1 の右辺（足し算結果）自動計算 & STEP2 のアンロック処理
+    // STEP1 の右辺自動計算 & STEP2 アンロック
     function calculateStep1() {
       const vals = leftInputs.map(i => i.value);
       const isComplete = vals.every(v => v !== '');
@@ -207,7 +206,6 @@
         const num3 = parseInt(vals[4] + vals[5], 10);
         const sum = num1 + num2 + num3;
 
-        // 3桁の文字列にフォーマット（例: 085 や 124）
         const sumStr = String(sum).padStart(3, '0');
 
         if (sumStr.length === 3) {
@@ -215,13 +213,11 @@
           rightInputs[1].value = sumStr[1];
           rightInputs[2].value = sumStr[2];
 
-          // STEP 2 を解放（アンロック）
           unlockStep2();
           return;
         }
       }
 
-      // 未完成時は右辺クリア & STEP 2 ロック
       rightInputs.forEach(i => i.value = '');
       lockStep2();
     }
@@ -243,13 +239,21 @@
       });
     }
 
-    // 漢字マスの自動フォーカス移動
+    // STEP2: 漢字決定時に次のマスへ移動
     kanjiInputs.forEach((input, index) => {
       input.addEventListener('input', () => {
-        if (input.value && index < kanjiInputs.length - 1) {
-          kanjiInputs[index + 1].focus();
+        // 漢字入力（変換確定時）で1文字以上あれば次のマスに移動
+        if (input.value.length > 0) {
+          // 2文字以上入力された場合は1文字に切り詰め
+          if (input.value.length > 1) {
+            input.value = input.value.slice(-1);
+          }
+          if (index < kanjiInputs.length - 1) {
+            kanjiInputs[index + 1].focus();
+          }
         }
       });
+
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Backspace' && !input.value && index > 0) {
           kanjiInputs[index - 1].focus();
