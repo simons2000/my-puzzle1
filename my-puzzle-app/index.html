@@ -72,26 +72,35 @@
       50% { opacity: 0.3; }
     }
 
-    /* 枠線矢印（塗りつぶしなし）共通デザイン */
+    /* 枠線矢印（太め・塗りつぶしなし）共通デザイン */
     .outline-arrow {
       color: transparent;
-      -webkit-text-stroke: 2px #4ade80;
+      -webkit-text-stroke: 3.5px #4ade80;
       font-weight: 900;
       display: inline-block;
       line-height: 1;
+    }
+
+    /* クリアポップアップのアニメーション */
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .pop-in {
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
   </style>
 </head>
 <body class="min-h-screen py-8 px-2 sm:px-4 flex flex-col items-center justify-center">
 
-  <main class="w-full max-w-xl space-y-8 border border-green-500/30 p-5 sm:p-8 rounded-lg bg-black">
+  <main class="w-full max-w-xl space-y-8 border border-green-500/30 p-5 sm:p-8 rounded-lg bg-black relative">
     
     <!-- タイトル -->
     <header class="text-center border-b border-green-500/30 pb-4">
       <h1 class="text-3xl font-extrabold tracking-widest text-green-400">解錠せよ</h1>
     </header>
 
-    <form id="puzzleForm" class="space-y-8">
+    <div id="puzzleForm" class="space-y-8">
 
       <!-- STEP 1 (常に表示) -->
       <section class="space-y-4">
@@ -143,9 +152,9 @@
         </div>
       </section>
 
-      <!-- STEP2 と STEP3 の間の下矢印 (枠線のみ・特大) -->
+      <!-- STEP2 と STEP3 の間の下矢印 (太枠線のみ・特大) -->
       <div id="arrowDivider" class="hidden text-center py-2 fade-in">
-        <span class="outline-arrow text-4xl sm:text-5xl">⇩</span>
+        <span class="outline-arrow text-5xl sm:text-6xl">⇩</span>
       </div>
 
       <!-- STEP 3 (STEP2クリア判定開始で表示) -->
@@ -158,31 +167,38 @@
           <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-green-300 tracking-wider min-h-[28px] flex items-center justify-center"></div>
         </div>
 
-        <!-- 解錠 ⇨ 入力欄 (枠線のみ・特大の右矢印) -->
+        <!-- 解錠 ⇨ 入力欄 (太枠線のみ・特大の右矢印) -->
         <div class="flex items-center justify-center gap-3 pt-2">
           <span class="text-xl sm:text-2xl font-extrabold text-green-400">解錠</span>
-          <span class="outline-arrow text-3xl sm:text-4xl">⇨</span>
+          <span class="outline-arrow text-4xl sm:text-5xl">⇨</span>
           <input 
             type="text" 
             id="answerInput" 
             class="square-input w-48 sm:w-64 h-11 sm:h-12 text-lg sm:text-xl rounded border-2 border-green-400 px-3 tracking-widest font-mono"
             placeholder="暗号化文字列"
+            autocomplete="off"
             required
           >
         </div>
-
-        <button 
-          type="submit" 
-          id="submitBtn"
-          class="w-full bg-green-400 hover:bg-green-300 text-black font-extrabold py-3.5 rounded text-lg transition-all active:scale-[0.98] mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          解錠（判定）
-        </button>
-
-        <div id="result" class="hidden rounded p-4 text-center text-sm font-bold border"></div>
       </section>
 
-    </form>
+    </div>
+
+    <!-- クリア演出モーダル -->
+    <div id="clearModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+      <div class="bg-gray-950 border-2 border-green-400 rounded-xl p-8 max-w-sm w-full text-center space-y-6 pop-in shadow-[0_0_30px_rgba(74,222,128,0.3)]">
+        <div class="text-5xl">🔓</div>
+        <div class="space-y-2">
+          <h3 class="text-2xl font-black text-green-400 tracking-wider">UNLOCKED!</h3>
+          <p class="text-lg font-bold text-green-200">解錠成功！</p>
+          <p class="text-xs text-green-500/80 pt-2">すべての暗号を見事に解読しました！</p>
+        </div>
+        <button id="closeModalBtn" class="w-full bg-green-400 hover:bg-green-300 text-black font-extrabold py-3 rounded text-base transition-all active:scale-[0.98]">
+          閉じる
+        </button>
+      </div>
+    </div>
+
   </main>
 
   <script>
@@ -202,6 +218,7 @@
     const SYMBOLS = "!$%&'()*+,/;<=>?[]^{}~".split('');
 
     let substitutionMap = {};
+    let expectedAnswer = "";
 
     function generateSubstitutionMap() {
       const map = {};
@@ -240,7 +257,8 @@
     const step3Section = document.getElementById('step3Section');
     const cipherDisplay = document.getElementById('cipherDisplay');
     const answerInput = document.getElementById('answerInput');
-    const submitBtn = document.getElementById('submitBtn');
+    const clearModal = document.getElementById('clearModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
 
     let currentReadings = null;
     let lastCheckedDigits = "";
@@ -339,10 +357,10 @@
       arrowDivider.classList.add('hidden');
       step3Section.classList.add('hidden');
       currentReadings = null;
+      expectedAnswer = "";
       answerInput.value = '';
       cipherDisplay.innerText = '';
       cipherDisplay.classList.remove('pulse-loading');
-      submitBtn.disabled = false;
     }
 
     async function updateDisplay() {
@@ -358,10 +376,9 @@
       }
 
       showStep3();
+      // 他のテキスト（text-green-300）と同じ色指定にしつつ点滅
       cipherDisplay.innerText = 'generating...';
-      cipherDisplay.classList.add('pulse-loading', 'text-yellow-400');
-      cipherDisplay.classList.remove('text-green-300');
-      submitBtn.disabled = true;
+      cipherDisplay.className = 'text-base sm:text-lg font-mono text-green-300 tracking-wider min-h-[28px] flex items-center justify-center pulse-loading';
 
       const currentRequestId = ++fetchRequestId;
 
@@ -381,13 +398,15 @@
           lastCheckedDigits = digits;
 
           substitutionMap = generateSubstitutionMap();
+          expectedAnswer = encryptTextWithMap('かいじょう', substitutionMap);
 
           const encryptedWords = currentReadings.map(reading => encryptTextWithMap(reading, substitutionMap));
           
-          cipherDisplay.classList.remove('pulse-loading', 'text-yellow-400');
-          cipherDisplay.classList.add('text-green-300');
+          cipherDisplay.className = 'text-base sm:text-lg font-mono text-green-300 tracking-wider min-h-[28px] flex items-center justify-center';
           cipherDisplay.innerText = encryptedWords.join(' ');
-          submitBtn.disabled = false;
+          
+          // 再生成された場合などに既に入力されている文字を自動判定
+          checkAnswer();
         } else {
           hideStep3();
         }
@@ -398,36 +417,21 @@
       }
     }
 
-    const form = document.getElementById('puzzleForm');
-    const resultDiv = document.getElementById('result');
+    // 暗号解読のリアルタイム判定
+    answerInput.addEventListener('input', checkAnswer);
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-
-      resultDiv.classList.add('hidden');
-      resultDiv.className = 'hidden rounded p-4 text-center text-sm font-bold border';
-
-      const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
-
-      if (!currentReadings || digits !== lastCheckedDigits) {
-        resultDiv.classList.remove('hidden');
-        resultDiv.classList.add('bg-red-950', 'text-red-400', 'border-red-800');
-        resultDiv.innerText = 'STEP1およびSTEP2を正しく入力（実在する熟語・画数一致）してから回答してください。';
-        return;
+    function checkAnswer() {
+      if (!expectedAnswer) return;
+      
+      const userInput = answerInput.value.trim();
+      if (userInput === expectedAnswer) {
+        // クリア演出モーダルを表示
+        clearModal.classList.remove('hidden');
       }
+    }
 
-      const correctAnswer = encryptTextWithMap('かいじょう', substitutionMap);
-      const userInputValue = answerInput.value.trim();
-
-      resultDiv.classList.remove('hidden');
-
-      if (userInputValue === correctAnswer) {
-        resultDiv.classList.add('bg-green-400', 'text-black', 'border-green-400');
-        resultDiv.innerHTML = `🎉 解錠成功！<br>正解です！`;
-      } else {
-        resultDiv.classList.add('bg-red-950', 'text-red-400', 'border-red-800');
-        resultDiv.innerText = '不正解です。暗号文の置換法則を解読して「かいじょう」に対応する文字列を入力してください。';
-      }
+    closeModalBtn.addEventListener('click', () => {
+      clearModal.classList.add('hidden');
     });
   </script>
 </body>
