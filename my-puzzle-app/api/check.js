@@ -1,60 +1,96 @@
 export default async function handler(req, res) {
-  // CORSヘッダー設定（どこからでもアクセス可能にする）
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { words, targetDigits } = req.body;
 
-  const { words, targetStrokes } = req.body;
-
-  // 1. 簡易画数辞書（API側で管理・後からいくらでも拡張可能）
-  const strokeDict = {
-    '一': 1, '人': 2, '入': 2, '八': 2, '九': 2, '七': 2, '力': 2, '十': 2,
-    '口': 3, '大': 3, '小': 3, '山': 3, '川': 3, '女': 3, '子': 3, '三': 3, '千': 3,
-    '月': 4, '日': 4, '水': 4, '木': 4, '火': 4, '天': 4, '文': 4, '心': 4, '手': 4, '中': 4,
-    '生': 5, '立': 5, '目': 5, '田': 5, '右': 5, '左': 5, '本': 5, '白': 5, '玉': 5, '学': 5,
-    '気': 6, '字': 6, '竹': 6, '名': 6, '百': 6, '先': 6, '早': 6, '虫': 6, '交': 6,
-    '角': 7, '町': 7, '花': 7, '見': 7, '貝': 7, '赤': 7, '足': 7, '車': 7, '男': 7,
-    '金': 8, '雨': 8, '命': 8, '青': 8, '林': 8, '空': 8, '知': 8, '長': 8,
-    '風': 9, '海': 9, '音': 9, '草': 9, '食': 9, '首': 9, '面': 9, '春': 9, '秋': 9
-  };
-
-  // 2. 熟語・読み判定辞書
-  const kanjiReadingMap = {
-    '人口': 'じんこう',
-    '大金': 'たいきん',
-    '風水': 'ふうすい',
-    '一学生': 'いちがくせい'
-  };
+  if (!words || !targetDigits || words.length !== 4 || targetDigits.length !== 9) {
+    return res.status(400).json({ error: '入力データが不正です。' });
+  }
 
   try {
-    const kanjis = words.join('').split('');
+    const allKanji = words.join('');
+    if (allKanji.length !== 9) {
+      return res.status(400).json({ error: '文字数の合計が9文字になりません。' });
+    }
 
-    // 画数チェック
+    // 1. 各文字の画数チェック (kanjiapi.dev)
     for (let i = 0; i < 9; i++) {
-      const targetStroke = parseInt(targetStrokes[i]);
-      const k = kanjis[i];
-      const stroke = strokeDict[k];
+      const char = allKanji[i];
+      const expectedStroke = parseInt(targetDigits[i], 10);
 
-      if (!stroke) {
-        return res.json({ success: false, errorMessage: `「${k}」の画数データが見つかりません。` });
+      const kanjiRes = await fetch(`https://kanjiapi.dev/v1/kanji/${encodeURIComponent(char)}`);
+      if (!kanjiRes.ok) {
+        return res.status(200).json({
+          success: false,
+          error: `「${char}」は漢字データが見つかりません。`
+        });
       }
-      if (stroke !== targetStroke) {
-        return res.json({ success: false, errorMessage: `${i+1}文字目「${k}」は${stroke}画ですが、正解は${targetStroke}画です。` });
+
+      const kanjiData = await kanjiRes.json();
+      const actualStroke = kanjiData.stroke_count;
+
+      if (actualStroke !== expectedStroke) {
+        return res.status(200).json({
+          success: false,
+          error: `「${char}」の画数は ${actualStroke}画 です（要求: ${expectedStroke}画）。`
+        });
       }
     }
 
-    // 熟語チェック
-    const readings = words.map(w => kanjiReadingMap[w]);
-    if (readings.some(r => !r)) {
-      return res.json({ success: false, errorMessage: "実在する正しい熟語を入力してください。" });
+    // 2. 熟語の実在チェック＆読み取得 (Yahoo! JLP 形態素解析)
+    const readings = [];
+    const clientID = process.env.YAHOO_CLIENT_ID; // Vercelの環境変数
+
+    for (const word of words) {
+      if (!clientID) {
+        // 環境変数が設定されていない場合のフォールバック（画数のみパス）
+        readings.push(word); 
+        continue;
+      }
+
+      const yahooRes = await fetch('https://jlp.yahooapis.jp/MAService/V2/parse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': `Yahoo AppID: ${clientID}`
+        },
+        body: JSON.stringify({
+          id: '1',
+          jsonrpc: '2.0',
+          method: 'jlp.maservice.parse',
+          params: { q: word }
+        })
+      });
+
+      if (!yahooRes.ok) {
+        readings.push(word);
+        continue;
+      }
+
+      const yahooData = await yahooRes.json();
+      const tokens = yahooData?.result?.tokens || [];
+
+      // 単語として分割されず1つの名詞/熟語として認識されているか
+      if (tokens.length === 1 && tokens[0][1] !== undefined) {
+        // 読み（ひらがな）を抽出
+        const reading = tokens[0][1]; 
+        readings.push(reading);
+      } else {
+        return res.status(200).json({
+          success: false,
+          error: `「${word}」は辞書に熟語として登録されていません。`
+        });
+      }
     }
 
-    return res.json({ success: true, readings });
+    return res.status(200).json({
+      success: true,
+      readings: readings
+    });
 
   } catch (err) {
-    return res.status(500).json({ success: false, errorMessage: "サーバー内部エラーが発生しました。" });
+    return res.status(500).json({ error: 'サーバー判定処理でエラーが発生しました。' });
   }
 }
