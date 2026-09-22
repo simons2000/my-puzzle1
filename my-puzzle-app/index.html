@@ -99,91 +99,91 @@
     }
   </style>
 </head>
-<body class="min-h-screen py-8 px-2 sm:px-4 flex flex-col items-center justify-center relative">
+<body class="min-h-screen py-4 px-1 sm:py-8 sm:px-4 flex flex-col items-center justify-center relative">
 
   <!-- リセットボタン (右上のあたり) -->
-  <button id="resetBtn" class="absolute top-4 right-4 sm:top-6 sm:right-6 border border-green-500/50 hover:border-green-400 text-green-400 hover:bg-green-500/10 font-mono text-xs sm:text-sm px-3 py-1.5 rounded transition-all">
+  <button id="resetBtn" class="absolute top-3 right-3 sm:top-6 sm:right-6 border border-green-500/50 hover:border-green-400 text-green-400 hover:bg-green-500/10 font-mono text-xs sm:text-sm px-2.5 py-1 sm:px-3 sm:py-1.5 rounded transition-all">
     RESET
   </button>
 
-  <main class="w-full max-w-xl space-y-6 border border-green-500/30 p-5 sm:p-8 rounded-lg bg-black relative">
+  <main class="w-full max-w-xl space-y-3 sm:space-y-6 border border-green-500/30 p-3 sm:p-8 rounded-lg bg-black relative">
     
     <!-- タイトル -->
-    <header class="text-center border-b border-green-500/30 pb-4">
-      <h1 class="text-3xl font-extrabold tracking-widest text-green-400">解錠せよ</h1>
+    <header class="text-center border-b border-green-500/30 pb-2 sm:pb-4">
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-green-400">解錠せよ</h1>
     </header>
 
-    <div id="puzzleForm" class="space-y-5">
+    <div id="puzzleForm" class="space-y-3 sm:space-y-5">
 
       <!-- STEP 1 -->
       <section>
-        <div class="w-full max-w-md mx-auto flex items-center justify-between text-green-400 font-extrabold font-mono text-base sm:text-2xl py-1 min-w-0">
+        <div class="w-full max-w-md mx-auto flex items-center justify-between text-green-400 font-extrabold font-mono text-lg sm:text-2xl py-0.5 sm:py-1 min-w-0">
           <div class="flex gap-1">
-            <input type="text" id="d0" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" required>
-            <input type="text" id="d1" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" required>
+            <input type="text" id="d0" maxlength="1" class="square-input w-9 h-11 sm:w-9 sm:h-11 text-xl sm:text-xl rounded border-2 border-green-400" required>
+            <input type="text" id="d1" maxlength="1" class="square-input w-9 h-11 sm:w-9 sm:h-11 text-xl sm:text-xl rounded border-2 border-green-400" required>
           </div>
           
           <span class="px-0.5 sm:px-1">+</span>
           
           <div class="flex gap-1">
-            <input type="text" id="d2" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" required>
-            <input type="text" id="d3" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" required>
+            <input type="text" id="d2" maxlength="1" class="square-input w-9 h-11 sm:w-9 sm:h-11 text-xl sm:text-xl rounded border-2 border-green-400" required>
+            <input type="text" id="d3" maxlength="1" class="square-input w-9 h-11 sm:w-9 sm:h-11 text-xl sm:text-xl rounded border-2 border-green-400" required>
           </div>
           
           <span class="px-0.5 sm:px-1">+</span>
           
           <div class="flex gap-1">
-            <input type="text" id="d4" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" required>
-            <input type="text" id="d5" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" required>
+            <input type="text" id="d4" maxlength="1" class="square-input w-9 h-11 sm:w-9 sm:h-11 text-xl sm:text-xl rounded border-2 border-green-400" required>
+            <input type="text" id="d5" maxlength="1" class="square-input w-9 h-11 sm:w-9 sm:h-11 text-xl sm:text-xl rounded border-2 border-green-400" required>
           </div>
           
           <span class="px-0.5 sm:px-1">=</span>
           
           <div class="flex gap-1">
-            <input type="text" id="d6" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" readonly tabindex="-1">
-            <input type="text" id="d7" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" readonly tabindex="-1">
-            <input type="text" id="d8" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" readonly tabindex="-1">
+            <input type="text" id="d6" class="square-input w-9 h-11 sm:w-9 sm:h-11 text-xl sm:text-xl rounded border-2 border-green-400" readonly tabindex="-1">
+            <input type="text" id="d7" class="square-input w-9 h-11 sm:w-9 sm:h-11 text-xl sm:text-xl rounded border-2 border-green-400" readonly tabindex="-1">
+            <input type="text" id="d8" class="square-input w-9 h-11 sm:w-9 sm:h-11 text-xl sm:text-xl rounded border-2 border-green-400" readonly tabindex="-1">
           </div>
         </div>
       </section>
 
       <!-- STEP 2 -->
       <section id="step2Section" class="hidden fade-in">
-        <div class="bg-gray-950 border border-green-500/30 p-4 rounded">
-          <div class="w-full max-w-md mx-auto flex items-center justify-between py-1 min-w-0">
-            <input type="text" id="w1" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[20%] min-w-0 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" required>
-            <input type="text" id="w2" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[20%] min-w-0 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" required>
-            <input type="text" id="w3" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[20%] min-w-0 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" required>
-            <input type="text" id="w4" maxlength="3" placeholder=" " class="square-input kanji-word-input kanji-3len w-[31%] min-w-0 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" required>
+        <div class="bg-gray-950 border border-green-500/30 p-2 sm:p-4 rounded">
+          <div class="w-full max-w-md mx-auto flex items-center justify-between py-0.5 sm:py-1 min-w-0">
+            <input type="text" id="w1" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[22%] min-w-0 h-11 sm:h-11 text-lg sm:text-xl border-2 border-green-400 rounded" required>
+            <input type="text" id="w2" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[22%] min-w-0 h-11 sm:h-11 text-lg sm:text-xl border-2 border-green-400 rounded" required>
+            <input type="text" id="w3" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[22%] min-w-0 h-11 sm:h-11 text-lg sm:text-xl border-2 border-green-400 rounded" required>
+            <input type="text" id="w4" maxlength="3" placeholder=" " class="square-input kanji-word-input kanji-3len w-[28%] min-w-0 h-11 sm:h-11 text-lg sm:text-xl border-2 border-green-400 rounded" required>
           </div>
         </div>
       </section>
 
       <!-- 下矢印 -->
-      <div id="arrowDivider" class="hidden text-center -my-2 fade-in">
-        <svg class="outline-arrow-svg w-8 h-7 sm:w-10 sm:h-8" viewBox="0 0 60 45">
+      <div id="arrowDivider" class="hidden text-center -my-1 sm:-my-2 fade-in">
+        <svg class="outline-arrow-svg w-6 h-5 sm:w-10 sm:h-8" viewBox="0 0 60 45">
           <polygon points="18,0 42,0 42,22 55,22 30,43 5,22 18,22" />
         </svg>
       </div>
 
       <!-- STEP 3 -->
-      <section id="step3Section" class="hidden space-y-3 fade-in">
+      <section id="step3Section" class="hidden space-y-2 sm:space-y-3 fade-in">
         <!-- 暗号文表示エリア -->
-        <div class="bg-gray-950 border border-green-500/30 p-4 rounded text-center overflow-hidden">
+        <div class="bg-gray-950 border border-green-500/30 p-3 sm:p-4 rounded text-center overflow-hidden">
           <div id="cipherDisplay" class="text-xs sm:text-base md:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] inline-flex items-center justify-center"></div>
         </div>
 
         <!-- 解錠 ⇨ 入力欄 -->
-        <div id="answerSection" class="hidden flex flex-col items-center justify-center gap-3 pt-4 fade-in">
-          <div class="flex items-center justify-center gap-3">
-            <span class="text-2xl sm:text-3xl font-extrabold text-green-400">解錠</span>
-            <svg class="outline-arrow-svg w-8 h-6 sm:w-10 sm:h-8" viewBox="0 0 50 36">
+        <div id="answerSection" class="hidden flex flex-col items-center justify-center gap-2 sm:gap-3 pt-2 sm:pt-4 fade-in">
+          <div class="flex items-center justify-center gap-2 sm:gap-3">
+            <span class="text-xl sm:text-3xl font-extrabold text-green-400">解錠</span>
+            <svg class="outline-arrow-svg w-6 h-5 sm:w-10 sm:h-8" viewBox="0 0 50 36">
               <polygon points="0,10 28,10 28,2 48,18 28,34 28,26 0,26" />
             </svg>
             <input 
               type="text" 
               id="answerInput" 
-              class="square-input w-48 sm:w-64 h-11 sm:h-12 text-lg sm:text-xl rounded border-2 border-green-400 px-3 tracking-widest font-mono"
+              class="square-input w-36 sm:w-64 h-11 sm:h-12 text-base sm:text-xl rounded border-2 border-green-400 px-3 tracking-widest font-mono"
               autocomplete="off"
               required
             >
@@ -196,7 +196,7 @@
   </main>
 
   <!-- CLEAR表示 (メイン枠の外側に配置) -->
-  <div id="inlineClearMessage" class="hidden text-3xl sm:text-4xl font-black text-green-400 tracking-widest pt-6 fade-in text-center">
+  <div id="inlineClearMessage" class="hidden text-3xl sm:text-4xl font-black text-green-400 tracking-widest pt-4 sm:pt-6 fade-in text-center">
     CLEAR
   </div>
 
@@ -481,23 +481,21 @@
       }
     }
 
-    // 初期状態にセットする関数（初期値: 38+59+32=129 ＆ 子供、石炭、大人、一人前）
     function initDefaultState() {
       const initialDigits = ['3', '8', '5', '9', '3', '2'];
       initialDigits.forEach((val, idx) => {
         leftInputs[idx].value = val;
       });
-      calculateStep1(); // これにより自動で右側(129)とSTEP2が表示される
+      calculateStep1();
 
       const initialWords = ['子供', '石炭', '大人', '一人前'];
       initialWords.forEach((word, idx) => {
         kanjiInputs[idx].value = word;
       });
 
-      updateDisplay(); // 自動で暗号生成を走らせる
+      updateDisplay();
     }
 
-    // リセットボタンのイベント
     resetBtn.addEventListener('click', () => {
       hideStep3();
       hideStep2();
@@ -507,7 +505,6 @@
       initDefaultState();
     });
 
-    // 初回ロード時に初期状態を流し込む
     window.addEventListener('DOMContentLoaded', () => {
       initDefaultState();
     });
