@@ -8,7 +8,7 @@
   <style>
     body {
       background-color: #000000;
-      color: #facc15;
+      color: #4ade80; /* 明るい黄緑 */
       font-family: "Hiragino Kaku Gothic ProN", "メイリオ", sans-serif;
     }
 
@@ -24,10 +24,10 @@
     
     /* ロック中の入力欄 */
     .square-input:disabled {
-      background-color: #333333 !important;
-      color: #666666 !important;
+      background-color: #222222 !important;
+      color: #555555 !important;
       cursor: not-allowed;
-      border-color: #444444 !important;
+      border-color: #333333 !important;
       background-image: none !important;
     }
 
@@ -56,50 +56,50 @@
 </head>
 <body class="min-h-screen py-8 px-2 sm:px-4 flex flex-col items-center justify-center">
 
-  <main class="w-full max-w-xl space-y-8 border border-yellow-500/30 p-5 sm:p-8 rounded-lg bg-black">
+  <main class="w-full max-w-xl space-y-8 border border-green-500/30 p-5 sm:p-8 rounded-lg bg-black">
     
     <!-- タイトル -->
-    <header class="text-center border-b border-yellow-500/30 pb-4">
-      <h1 class="text-3xl font-extrabold tracking-widest text-yellow-400">解錠せよ</h1>
+    <header class="text-center border-b border-green-500/30 pb-4">
+      <h1 class="text-3xl font-extrabold tracking-widest text-green-400">解錠せよ</h1>
     </header>
 
     <form id="puzzleForm" class="space-y-8">
 
       <!-- STEP 1 -->
       <section class="space-y-4">
-        <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP1 マスに0~9の数字を入れ、正しい式を作れ</h2>
+        <h2 class="text-base sm:text-lg font-bold text-green-400">STEP1 マスに0~9の数字を入れ、正しい式を作れ</h2>
         
-        <!-- 全体コンテナ (max-w-md で幅を統一) -->
-        <div class="max-w-md mx-auto flex items-center justify-between text-yellow-400 font-extrabold font-mono text-sm sm:text-xl py-2">
+        <!-- 間隔（gap）や余白をゆったりと持たせた数式エリア -->
+        <div class="max-w-md mx-auto flex items-center justify-between text-green-400 font-extrabold font-mono text-base sm:text-2xl py-2">
           <!-- 語1 (2桁) -->
-          <div class="flex gap-1">
-            <input type="text" id="d0" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-yellow-400" required>
-            <input type="text" id="d1" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-yellow-400" required>
+          <div class="flex gap-1.5 sm:gap-2">
+            <input type="text" id="d0" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" required>
+            <input type="text" id="d1" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" required>
           </div>
           
-          <span>+</span>
+          <span class="px-1 sm:px-2">+</span>
           
           <!-- 語2 (2桁) -->
-          <div class="flex gap-1">
-            <input type="text" id="d2" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-yellow-400" required>
-            <input type="text" id="d3" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-yellow-400" required>
+          <div class="flex gap-1.5 sm:gap-2">
+            <input type="text" id="d2" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" required>
+            <input type="text" id="d3" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" required>
           </div>
           
-          <span>+</span>
+          <span class="px-1 sm:px-2">+</span>
           
           <!-- 語3 (2桁) -->
-          <div class="flex gap-1">
-            <input type="text" id="d4" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-yellow-400" required>
-            <input type="text" id="d5" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-yellow-400" required>
+          <div class="flex gap-1.5 sm:gap-2">
+            <input type="text" id="d4" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" required>
+            <input type="text" id="d5" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" required>
           </div>
           
-          <span>=</span>
+          <span class="px-1 sm:px-2">=</span>
           
           <!-- 語4 (自動計算される3桁) -->
-          <div class="flex gap-1">
-            <input type="text" id="d6" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-yellow-400" readonly tabindex="-1">
-            <input type="text" id="d7" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-yellow-400" readonly tabindex="-1">
-            <input type="text" id="d8" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-yellow-400" readonly tabindex="-1">
+          <div class="flex gap-1.5 sm:gap-2">
+            <input type="text" id="d6" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" readonly tabindex="-1">
+            <input type="text" id="d7" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" readonly tabindex="-1">
+            <input type="text" id="d8" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" readonly tabindex="-1">
           </div>
         </div>
       </section>
@@ -107,45 +107,45 @@
       <!-- STEP 2 -->
       <section id="step2Section" class="space-y-4 opacity-50 pointer-events-none transition-all">
         <div class="flex items-center justify-between">
-          <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP2 マスに正しい漢字を入れ、4つの熟語を作れ</h2>
+          <h2 class="text-base sm:text-lg font-bold text-green-400">STEP2 マスに正しい漢字を入れ、4つの熟語を作れ</h2>
           <span id="step2LockMsg" class="text-xs text-red-400 font-normal">※STEP1を完成させてください</span>
         </div>
 
-        <!-- STEP1と同じ max-w-md の全幅を使って4つの枠をレイアウト -->
-        <div class="max-w-md mx-auto flex items-center justify-between gap-2 py-2">
+        <!-- STEP1と同じ max-w-md 内で、枠と枠の間隔（gap-3 sm:gap-5）をゆったり広げた配置 -->
+        <div class="max-w-md mx-auto flex items-center justify-between gap-3 sm:gap-5 py-2">
           <!-- 熟語1 (2文字) -->
-          <input type="text" id="w1" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[21%] h-8 sm:h-11 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
+          <input type="text" id="w1" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len flex-1 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" disabled required>
 
           <!-- 熟語2 (2文字) -->
-          <input type="text" id="w2" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[21%] h-8 sm:h-11 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
+          <input type="text" id="w2" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len flex-1 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" disabled required>
 
           <!-- 熟語3 (2文字) -->
-          <input type="text" id="w3" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[21%] h-8 sm:h-11 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
+          <input type="text" id="w3" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len flex-1 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" disabled required>
 
-          <!-- 熟語4 (3文字) -->
-          <input type="text" id="w4" maxlength="3" placeholder=" " class="square-input kanji-word-input kanji-3len w-[31%] h-8 sm:h-11 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
+          <!-- 熟語4 (3文字 - 1.5倍の幅) -->
+          <input type="text" id="w4" maxlength="3" placeholder=" " class="square-input kanji-word-input kanji-3len flex-[1.5] h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" disabled required>
         </div>
       </section>
 
       <!-- STEP 3 -->
       <section class="space-y-4">
-        <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP3 暗号文を解読し、解錠せよ</h2>
+        <h2 class="text-base sm:text-lg font-bold text-green-400">STEP3 暗号文を解読し、解錠せよ</h2>
 
         <!-- 暗号文表示エリア -->
-        <div class="bg-gray-950 border border-yellow-500/30 p-4 rounded text-center space-y-2">
-          <p class="text-xs text-yellow-500/70">【 暗号文 】</p>
-          <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-yellow-300 tracking-wider">
+        <div class="bg-gray-950 border border-green-500/30 p-4 rounded text-center space-y-2">
+          <p class="text-xs text-green-500/70">【 暗号文 】</p>
+          <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-green-300 tracking-wider">
             ※STEP1・2を正しく入力すると暗号文が現れます
           </div>
         </div>
 
         <!-- 解錠 ＝ 入力欄 -->
         <div class="flex items-center justify-center gap-3 pt-2">
-          <span class="text-xl sm:text-2xl font-extrabold text-yellow-400">解錠 ＝</span>
+          <span class="text-xl sm:text-2xl font-extrabold text-green-400">解錠 ＝</span>
           <input 
             type="text" 
             id="answerInput" 
-            class="square-input w-48 sm:w-64 h-11 sm:h-12 text-lg sm:text-xl rounded border-2 border-yellow-400 px-3 tracking-widest font-mono"
+            class="square-input w-48 sm:w-64 h-11 sm:h-12 text-lg sm:text-xl rounded border-2 border-green-400 px-3 tracking-widest font-mono"
             placeholder="暗号化文字列"
             required
           >
@@ -154,7 +154,7 @@
         <button 
           type="submit" 
           id="submitBtn"
-          class="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-extrabold py-3.5 rounded text-lg transition-all active:scale-[0.98] mt-4"
+          class="w-full bg-green-400 hover:bg-green-300 text-black font-extrabold py-3.5 rounded text-lg transition-all active:scale-[0.98] mt-4"
         >
           解錠（判定）
         </button>
@@ -379,7 +379,7 @@
       resultDiv.classList.remove('hidden');
 
       if (userInputValue === correctAnswer) {
-        resultDiv.classList.add('bg-yellow-400', 'text-black', 'border-yellow-400');
+        resultDiv.classList.add('bg-green-400', 'text-black', 'border-green-400');
         resultDiv.innerHTML = `🎉 解錠成功！<br>正解です！`;
       } else {
         resultDiv.classList.add('bg-red-950', 'text-red-400', 'border-red-800');
