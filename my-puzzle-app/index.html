@@ -1,4 +1,107 @@
 <!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>解錠せよ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #000000;
+      color: #4ade80; /* 明るい黄緑 */
+      font-family: "Hiragino Kaku Gothic ProN", "メイリオ", sans-serif;
+    }
+
+    /* 基本の白マス */
+    .square-input {
+      background-color: #ffffff !important;
+      color: #000000 !important;
+      font-weight: 800;
+      text-align: center;
+      outline: none;
+      transition: all 0.2s;
+      box-sizing: border-box;
+    }
+    
+    /* ロック中の入力欄 */
+    .square-input:disabled {
+      background-color: #222222 !important;
+      color: #555555 !important;
+      cursor: not-allowed;
+      border-color: #333333 !important;
+      background-image: none !important;
+    }
+
+    /* STEP2: 熟語用入力フォーム */
+    .kanji-word-input {
+      letter-spacing: 0.25em;
+      padding-left: 0.25em;
+    }
+
+    /* 未入力（値が空）のときだけ区切り線を表示 */
+    .kanji-2len:placeholder-shown {
+      background: #ffffff linear-gradient(to right, transparent 50%, #e5e7eb 50%, transparent 52%);
+    }
+
+    .kanji-3len:placeholder-shown {
+      background: #ffffff linear-gradient(to right, 
+        transparent 33.33%, 
+        #e5e7eb 33.33%, 
+        transparent 34.5%, 
+        transparent 66.66%, 
+        #e5e7eb 66.66%, 
+        transparent 67.8%
+      );
+    }
+
+    /* フェードインアニメーション */
+    .fade-in {
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Generating... 用の点滅アニメーション */
+    .pulse-loading {
+      animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* SVG矢印の共通スタイル（太い幹・短い形状・緑の枠線・中抜き） */
+    .outline-arrow-svg {
+      fill: #000000;
+      stroke: #4ade80;
+      stroke-width: 4;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    /* クリアポップアップのアニメーション */
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .pop-in {
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen py-8 px-2 sm:px-4 flex flex-col items-center justify-center">
+
+  <main class="w-full max-w-xl space-y-8 border border-green-500/30 p-5 sm:p-8 rounded-lg bg-black relative">
+    
+    <!-- タイトル -->
+    <header class="text-center border-b border-green-500/30 pb-4">
+      <h1 class="text-3xl font-extrabold tracking-widest text-green-400">解錠せよ</h1>
+    </header>
+
     <div id="puzzleForm" class="space-y-8">
 
       <!-- STEP 1 (常に表示) -->
@@ -39,7 +142,7 @@
 
       <!-- STEP 2 (STEP1クリアまで非表示) -->
       <section id="step2Section" class="hidden space-y-4 pt-4 border-t border-green-500/20 fade-in">
-        <!-- 4つの熟語全体を囲む角丸枠 (STEP3の暗号文エリアと同デザイン) -->
+        <!-- 4つの熟語全体を囲む角丸枠 -->
         <div class="bg-gray-950 border border-green-500/30 p-4 rounded">
           <div class="w-full max-w-md mx-auto flex items-center justify-between py-1 min-w-0">
             <input type="text" id="w1" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[20%] min-w-0 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" required>
@@ -50,9 +153,9 @@
         </div>
       </section>
 
-      <!-- STEP2 と STEP3 の間の下矢印 (幹幅が太く短いSVG矢印) -->
+      <!-- STEP2 と STEP3 の間の下矢印 (少し小さく調整) -->
       <div id="arrowDivider" class="hidden text-center py-1 fade-in">
-        <svg class="outline-arrow-svg w-8 h-7 sm:w-11 sm:h-9" viewBox="0 0 60 45">
+        <svg class="outline-arrow-svg w-9 h-8 sm:w-11 sm:h-9" viewBox="0 0 60 45">
           <polygon points="18,0 42,0 42,22 55,22 30,43 5,22 18,22" />
         </svg>
       </div>
@@ -64,10 +167,10 @@
           <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-green-300 tracking-wider min-h-[28px] flex items-center justify-center"></div>
         </div>
 
-        <!-- 解錠 ⇨ 入力欄 (「解錠」の文字サイズ拡大・placeholder空) -->
+        <!-- 解錠 ⇨ 入力欄 (右矢印も少し小さく調整) -->
         <div class="flex items-center justify-center gap-3 pt-2">
           <span class="text-2xl sm:text-3xl font-extrabold text-green-400">解錠</span>
-          <svg class="outline-arrow-svg w-7 h-6 sm:w-10 sm:h-7" viewBox="0 0 50 36">
+          <svg class="outline-arrow-svg w-8 h-6 sm:w-10 sm:h-8" viewBox="0 0 50 36">
             <polygon points="0,10 28,10 28,2 48,18 28,34 28,26 0,26" />
           </svg>
           <input 
