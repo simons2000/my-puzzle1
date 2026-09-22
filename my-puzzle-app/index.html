@@ -112,8 +112,8 @@
       </div>
       
       <div class="bg-white p-4 rounded-none border border-slate-300 mb-5 text-sm text-slate-700 leading-relaxed shadow-sm">
-        <p class="font-bold text-xs text-slate-400 uppercase tracking-wider mb-2">【解読ヒント】</p>
-        <p class="mb-1">元の読み：<span id="plain-hint" class="font-mono text-slate-500">（STEP 2クリアで表示）</span></p>
+        <p class="font-bold text-xs text-slate-400 uppercase tracking-wider mb-2">【解読ヒント（分かち書き）】</p>
+        <p class="mb-1">元の読み：<span id="plain-hint" class="font-mono text-slate-600 font-bold">（STEP 2クリアで表示）</span></p>
         <p>暗号変換：<span id="cipher-output" class="font-mono text-blue-600 font-bold">（STEP 2クリアで表示）</span></p>
       </div>
 
@@ -132,6 +132,9 @@
       'な':'に','に':'ぬ','ぬ':'ね','ね':'の','の':'は','は':'ひ','ひ':'ふ','ふ':'へ','へ':'ほ','ほ':'ま',
       'ま':'み','み':'む','む':'め','め':'も','も':'や','や':'ゆ','ゆ':'よ','よ':'ら','ら':'り','り':'る',
       'る':'れ','れ':'ろ','ろ':'わ','わ':'を','を':'ん','ん':'あ',
+      'が':'ぎ','ぎ':'ぐ','ぐ':'げ','げ':'ご','ご':'ざ','ざ':'じ','じ':'ず','ず':'ぜ','ぜ':'ぞ','ぞ':'だ',
+      'だ':'ぢ','ぢ':'づ','づ':'で','で':'ど','ど':'ば','ば':'び','び':'ぶ','ぶ':'べ','べ':'ぼ','ぼ':'ぱ',
+      'ぱ':'ぴ','ぴ':'ぷ','ぷ':'ぺ','ぺ':'ぽ','ぽ':'が',
       'っ':'っ','ー':'ー'
     };
 
@@ -140,7 +143,6 @@
     const s1LeftInputs  = Array.from(document.querySelectorAll('.step1-left-in'));
     const s1RightInputs = Array.from(document.querySelectorAll('.step1-right-in'));
 
-    // STEP 1 入力＆フォーカス制御
     s1LeftInputs.forEach((input, index) => {
       input.addEventListener('input', () => {
         if (input.value.length === 1 && index < s1LeftInputs.length - 1) {
@@ -158,7 +160,6 @@
     function checkStep1() {
       const vals = s1LeftInputs.map(i => i.value.trim());
 
-      // 1つでも未入力や数字以外があれば計算をクリアしてSTEP 2をリセット
       if (vals.some(v => v === "" || isNaN(v))) {
         s1RightInputs.forEach(i => i.value = "");
         document.getElementById('step1-mark').innerText = "⬜";
@@ -183,8 +184,6 @@
 
       document.getElementById('step1-mark').innerText = "✅";
       unlockStep2();
-
-      // 数字が変わったので、STEP 2が入力済みであれば再チェックを行う
       checkStep2();
     }
 
@@ -205,7 +204,6 @@
       lockStep3();
     }
 
-    // STEP 2 API判定処理
     const s2Inputs = Array.from(document.querySelectorAll('.step2-word-in'));
     s2Inputs.forEach(input => input.addEventListener('input', checkStep2));
 
@@ -269,10 +267,10 @@
       }, 400);
     }
 
-    // STEP 3
     function unlockStep3() {
       document.getElementById('step3-container').classList.remove('opacity-40', 'pointer-events-none');
 
+      // 分かち書き（スペース区切り）で元の読みと暗号文を生成
       const plainSpaced = wordReadings.join(' ');
       const cipherSpaced = wordReadings.map(word => {
         let cipherWord = "";
@@ -305,7 +303,7 @@
         if (typeof confetti === 'function') {
           confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
         }
-        alert("🎉 CLEAR！どんな漢字・熟語も判定できるWebアプリの完成です！");
+        alert("🎉 CLEAR！謎解き暗号パズルクリアです！");
       } else {
         alert("❌ 「こたえ」の暗号文が違います。ヒントからルールを推測して変換してください。");
       }
