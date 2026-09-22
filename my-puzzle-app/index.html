@@ -28,12 +28,30 @@
       color: #666666 !important;
       cursor: not-allowed;
       border-color: #444444 !important;
+      background-image: none !important;
     }
 
-    /* 熟語入力マス（文字間隔を広げて原稿用紙風にするスタイル） */
-    .word-input {
-      letter-spacing: 0.2em;
-      padding-left: 0.2em; /* 文字の中央揃え調整 */
+    /* STEP2: 熟語用入力フォーム (マス目の背景区切り線付き) */
+    .kanji-word-input {
+      letter-spacing: 0.35em;
+      padding-left: 0.35em; /* 文字をマス中央に配置するためのオフセット */
+    }
+
+    /* 2文字用マス（真ん中に薄い区切り線） */
+    .kanji-2len {
+      background: #ffffff linear-gradient(to right, transparent 50%, #e5e7eb 50%, transparent 52%);
+    }
+
+    /* 3文字用マス（3等分する薄い区切り線2本） */
+    .kanji-3len {
+      background: #ffffff linear-gradient(to right, 
+        transparent 33.33%, 
+        #e5e7eb 33.33%, 
+        transparent 34.5%, 
+        transparent 66.66%, 
+        #e5e7eb 66.66%, 
+        transparent 67.8%
+      );
     }
   </style>
 </head>
@@ -93,19 +111,19 @@
           <span id="step2LockMsg" class="text-xs text-red-400 font-normal">※STEP1を完成させてください</span>
         </div>
 
-        <!-- 熟語ごとに1つの入力欄（2文字・2文字・2文字・3文字） -->
+        <!-- 熟語ごとに繋がったブロック構造 -->
         <div class="flex items-center justify-center gap-2 sm:gap-4 overflow-x-auto py-2">
-          <!-- 熟語1 (2文字入力欄) -->
-          <input type="text" id="w1" maxlength="2" class="square-input word-input w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
+          <!-- 熟語1 (2文字入力欄・区切り線あり) -->
+          <input type="text" id="w1" maxlength="2" class="square-input kanji-word-input kanji-2len w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
 
-          <!-- 熟語2 (2文字入力欄) -->
-          <input type="text" id="w2" maxlength="2" class="square-input word-input w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
+          <!-- 熟語2 (2文字入力欄・区切り線あり) -->
+          <input type="text" id="w2" maxlength="2" class="square-input kanji-word-input kanji-2len w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
 
-          <!-- 熟語3 (2文字入力欄) -->
-          <input type="text" id="w3" maxlength="2" class="square-input word-input w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
+          <!-- 熟語3 (2文字入力欄・区切り線あり) -->
+          <input type="text" id="w3" maxlength="2" class="square-input kanji-word-input kanji-2len w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
 
-          <!-- 熟語4 (3文字入力欄) -->
-          <input type="text" id="w4" maxlength="3" class="square-input word-input w-24 h-9 sm:w-28 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
+          <!-- 熟語4 (3文字入力欄・区切り線あり) -->
+          <input type="text" id="w4" maxlength="3" class="square-input kanji-word-input kanji-3len w-24 h-9 sm:w-28 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
         </div>
       </section>
 
@@ -205,24 +223,33 @@
       });
     }
 
-    // STEP2: 熟語の規定文字数に達したら次の入力欄へ移動
+    // STEP2: IME（漢字変換）の確定時のみ次のフォームへ移動させる制御
     kanjiInputs.forEach((input, index) => {
-      const targetLength = parseInt(input.getAttribute('maxlength'), 10);
+      let isComposing = false; // IME変換中フラグ
 
-      const checkAndMove = () => {
-        if (input.value.length >= targetLength && index < kanjiInputs.length - 1) {
-          kanjiInputs[index + 1].focus();
-        }
-      };
+      input.addEventListener('compositionstart', () => {
+        isComposing = true;
+      });
 
       input.addEventListener('compositionend', () => {
-        setTimeout(checkAndMove, 10);
+        isComposing = false;
+        // 変換確定後に判定
+        checkAndMove();
       });
 
       input.addEventListener('input', () => {
-        // IME使用中（未確定）でなければ判定
-        checkAndMove();
+        // IME使用中でなければ（アルファベット直打ち等の場合）判定
+        if (!isComposing) {
+          checkAndMove();
+        }
       });
+
+      function checkAndMove() {
+        const targetLength = parseInt(input.getAttribute('maxlength'), 10);
+        if (input.value.length >= targetLength && index < kanjiInputs.length - 1) {
+          kanjiInputs[index + 1].focus();
+        }
+      }
 
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Backspace' && !input.value && index > 0) {
