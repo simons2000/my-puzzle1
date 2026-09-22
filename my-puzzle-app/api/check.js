@@ -37,14 +37,14 @@ export default async function handler(req, res) {
       }
     }
 
-    // 2. Wikipedia/Wiktionary APIによる実在熟語チェック & 読み取得
+    // 2. 熟語の実在チェック & 読み取得
     const readings = [];
+    const clientID = process.env.YAHOO_CLIENT_ID;
 
     for (const word of words) {
       let wordReading = "";
 
-      // Yahoo Client IDが環境変数にあれば優先的にYahoo APIを使用
-      const clientID = process.env.YAHOO_CLIENT_ID;
+      // 【1】 Yahoo! JLP API（最優先・完全な辞書判定）
       if (clientID) {
         try {
           const yahooRes = await fetch('https://jlp.yahooapis.jp/MAService/V2/parse', {
@@ -64,62 +64,62 @@ export default async function handler(req, res) {
           if (yahooRes.ok) {
             const yahooData = await yahooRes.json();
             const tokens = yahooData?.result?.tokens || [];
-            // 単一の名詞/熟語として判定されているかチェック
-            if (tokens.length === 1 && tokens[0][1]) {
-              wordReading = tokens[0][1].replace(/[\u30a1-\u30f6]/g, m =>
-                String.fromCharCode(m.charCodeAt(0) - 0x60)
-              );
+
+            // 正しい名詞/熟語として1単語（または適切な複合語）で辞書認識されているか
+            if (tokens.length >= 1) {
+              const fullReading = tokens.map(t => t[1] || "").join('');
+              if (fullReading) {
+                wordReading = fullReading.replace(/[\u30a1-\u30f6]/g, m =>
+                  String.fromCharCode(m.charCodeAt(0) - 0x60)
+                );
+              }
             }
           }
         } catch (e) {}
       }
 
-      // APIキー未設定の場合：Wiktionary / Wikipedia の辞書存在判定
+      // 【2】 Wiktionary / Wikipedia API (Yahoo未設定時の検索フォールバック)
       if (!wordReading) {
         try {
-          const wikiRes = await fetch(
-            `https://ja.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(word)}&prop=extracts&exintro=1&explaintext=1&format=json&origin=*`
+          // ja.wiktionary (日本語国語辞典) を優先検索
+          const wiktionaryRes = await fetch(
+            `https://ja.wiktionary.org/w/api.php?action=query&titles=${encodeURIComponent(word)}&format=json&origin=*`
           );
-          
-          if (wikiRes.ok) {
-            const wikiData = await wikiRes.json();
-            const pages = wikiData?.query?.pages || {};
+          if (wiktionaryRes.ok) {
+            const wData = await wiktionaryRes.json();
+            const pages = wData?.query?.pages || {};
             const pageId = Object.keys(pages)[0];
 
-            // Wikipediaにページが存在しない（pageId === "-1"）場合は実在しない熟語として判定
-            if (pageId === "-1") {
-              return res.status(200).json({
-                success: false,
-                error: `「${word}」は辞書に実在する熟語として認定されませんでした。`
-              });
+            if (pageId !== "-1") {
+              // Wiktionaryに存在する単語
+              wordReading = await getFallbackReading(word);
             }
+          }
 
-            // 概要文からひらがな読みを抽出（例: 人口（じんこう）は〜）
-            const extractText = pages[pageId]?.extract || "";
-            const match = extractText.match(/（([ぁ-んー]+)）/) || extractText.match(/（[^）]*?([ぁ-んー]{2,})[^）]*?）/);
-            if (match && match[1]) {
-              wordReading = match[1];
+          // WiktionaryになくWikipediaのリダイレクト/曖昧さ回避も含めて検索
+          if (!wordReading) {
+            const wikiRes = await fetch(
+              `https://ja.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(word)}&redirects=1&format=json&origin=*`
+            );
+            if (wikiRes.ok) {
+              const wikiData = await wikiRes.json();
+              const pages = wikiData?.query?.pages || {};
+              const pageId = Object.keys(pages)[0];
+
+              if (pageId !== "-1") {
+                wordReading = await getFallbackReading(word);
+              }
             }
           }
         } catch (e) {}
       }
 
-      // 辞書で読みが抽出できない場合のフォールバック（音読み優先処理）
+      // 実在辞書に全く引っかからなかった場合（例: 「一人風」など）
       if (!wordReading) {
-        let fallbackReading = "";
-        for (const char of word) {
-          const kRes = await fetch(`https://kanjiapi.dev/v1/kanji/${encodeURIComponent(char)}`);
-          if (kRes.ok) {
-            const kData = await kRes.json();
-            const onReadings = kData.on_readings || [];
-            const kunReadings = kData.kun_readings || [];
-            let r = onReadings.length > 0 ? onReadings[0] : (kunReadings[0] || char);
-            fallbackReading += r.replace(/\./g, '').replace(/[\u30a1-\u30f6]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));
-          } else {
-            fallbackReading += char;
-          }
-        }
-        wordReading = fallbackReading;
+        return res.status(200).json({
+          success: false,
+          error: `「${word}」は辞書に実在する熟語として認定されませんでした。`
+        });
       }
 
       readings.push(wordReading);
@@ -132,6 +132,24 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('Server error:', err);
-    return res.status(500).json({ error: 'サーバー処理でエラーが発生しました。Vercelログを確認してください。' });
+    return res.status(500).json({ error: 'サーバー処理でエラーが発生しました。' });
   }
+}
+
+// 漢字ごとの音/訓読みから平仮名読みを組み立てる補助関数
+async function getFallbackReading(word) {
+  let fallback = "";
+  for (const char of word) {
+    const kRes = await fetch(`https://kanjiapi.dev/v1/kanji/${encodeURIComponent(char)}`);
+    if (kRes.ok) {
+      const kData = await kRes.json();
+      const onReadings = kData.on_readings || [];
+      const kunReadings = kData.kun_readings || [];
+      let r = onReadings.length > 0 ? onReadings[0] : (kunReadings[0] || char);
+      fallback += r.replace(/\./g, '').replace(/[\u30a1-\u30f6]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));
+    } else {
+      fallback += char;
+    }
+  }
+  return fallback;
 }
