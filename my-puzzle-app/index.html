@@ -130,7 +130,7 @@
       <section class="space-y-4">
         <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP3 暗号文を解読し、解錠せよ</h2>
 
-        <!-- 暗号文表示エリア（分かち書き形式） -->
+        <!-- 暗号文表示エリア（斜線なし・連続表示） -->
         <div class="bg-gray-950 border border-yellow-500/30 p-4 rounded text-center space-y-2">
           <p class="text-xs text-yellow-500/70">【 暗号文 】</p>
           <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-yellow-300 tracking-wider">
@@ -285,7 +285,7 @@
       }).join('');
     }
 
-    // STEP1・2の条件入力状況を確認
+    // STEP1・2の入力状況を確認
     function getInputsState() {
       const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
       const words = kanjiInputs.map(i => i.value.trim());
@@ -295,7 +295,7 @@
       return { digits, words };
     }
 
-    // 画面上の暗号文表示（分かち書き）を更新
+    // 画面上の暗号文表示（斜線なし・連続文字列）を更新
     function updateDisplay() {
       const state = getInputsState();
       if (!state) {
@@ -303,13 +303,9 @@
         return;
       }
 
-      // STEP2の熟語の読みを暗号化して「 / 」で区切る
-      const cipherWords = state.words.map(word => {
-        const reading = KANJI_READING_MAP[word] || word;
-        return encryptText(reading, state.digits);
-      });
-
-      cipherDisplay.innerText = cipherWords.join(' / ');
+      // STEP2の全熟語の読みを結合して一括暗号化
+      const fullReading = state.words.map(word => KANJI_READING_MAP[word] || word).join('');
+      cipherDisplay.innerText = encryptText(fullReading, state.digits);
     }
 
     // 判定（送信）処理
