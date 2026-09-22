@@ -53,6 +53,15 @@
         transparent 67.8%
       );
     }
+
+    /* フェードインアニメーション */
+    .fade-in {
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body class="min-h-screen py-8 px-2 sm:px-4 flex flex-col items-center justify-center">
@@ -66,9 +75,9 @@
 
     <form id="puzzleForm" class="space-y-8">
 
-      <!-- STEP 1 -->
+      <!-- STEP 1 (常に表示) -->
       <section class="space-y-4">
-        <h2 class="text-base sm:text-lg font-bold text-green-400">STEP1 マスに0~9の数字を入れ、正しい式を作れ</h2>
+        <h2 class="text-base sm:text-lg font-bold text-green-400">STEP1 マスに1~9の数字を入れ、正しい式を作れ</h2>
         
         <!-- 全体幅を max-w-md (w-full) に固定して配置 -->
         <div class="w-full max-w-md mx-auto flex items-center justify-between text-green-400 font-extrabold font-mono text-base sm:text-2xl py-2 min-w-0">
@@ -105,39 +114,34 @@
         </div>
       </section>
 
-      <!-- STEP 2 -->
-      <section id="step2Section" class="space-y-4 opacity-50 pointer-events-none transition-all">
-        <div class="flex items-center justify-between">
-          <h2 class="text-base sm:text-lg font-bold text-green-400">STEP2 マスに正しい漢字を入れ、4つの熟語を作れ</h2>
-          <span id="step2LockMsg" class="text-xs text-red-400 font-normal">※STEP1を完成させてください</span>
-        </div>
+      <!-- STEP 2 (STEP1クリアまで非表示) -->
+      <section id="step2Section" class="hidden space-y-4 pt-4 border-t border-green-500/20 fade-in">
+        <h2 class="text-base sm:text-lg font-bold text-green-400">STEP2 マスに正しい漢字を入れ、4つの熟語を作れ</h2>
 
         <!-- STEP1と同じ max-w-md の全幅にピッタリ収まるパーセンテージ指定 -->
         <div class="w-full max-w-md mx-auto flex items-center justify-between py-2 min-w-0">
           <!-- 熟語1 (2文字) -->
-          <input type="text" id="w1" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[20%] min-w-0 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" disabled required>
+          <input type="text" id="w1" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[20%] min-w-0 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" required>
 
           <!-- 熟語2 (2文字) -->
-          <input type="text" id="w2" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[20%] min-w-0 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" disabled required>
+          <input type="text" id="w2" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[20%] min-w-0 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" required>
 
           <!-- 熟語3 (2文字) -->
-          <input type="text" id="w3" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[20%] min-w-0 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" disabled required>
+          <input type="text" id="w3" maxlength="2" placeholder=" " class="square-input kanji-word-input kanji-2len w-[20%] min-w-0 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" required>
 
           <!-- 熟語4 (3文字) -->
-          <input type="text" id="w4" maxlength="3" placeholder=" " class="square-input kanji-word-input kanji-3len w-[31%] min-w-0 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" disabled required>
+          <input type="text" id="w4" maxlength="3" placeholder=" " class="square-input kanji-word-input kanji-3len w-[31%] min-w-0 h-8 sm:h-11 text-base sm:text-xl border-2 border-green-400 rounded" required>
         </div>
       </section>
 
-      <!-- STEP 3 -->
-      <section class="space-y-4">
+      <!-- STEP 3 (STEP2クリアまで非表示) -->
+      <section id="step3Section" class="hidden space-y-4 pt-4 border-t border-green-500/20 fade-in">
         <h2 class="text-base sm:text-lg font-bold text-green-400">STEP3 暗号文を解読し、解錠せよ</h2>
 
         <!-- 暗号文表示エリア -->
         <div class="bg-gray-950 border border-green-500/30 p-4 rounded text-center space-y-2">
           <p class="text-xs text-green-500/70">【 暗号文 】</p>
-          <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-green-300 tracking-wider">
-            ※STEP1・2を正しく入力すると暗号文が現れます
-          </div>
+          <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-green-300 tracking-wider"></div>
         </div>
 
         <!-- 解錠 ＝ 入力欄 -->
@@ -215,8 +219,9 @@
     const leftInputs = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'].map(id => document.getElementById(id));
     const rightInputs = ['d6', 'd7', 'd8'].map(id => document.getElementById(id));
     const kanjiInputs = ['w1', 'w2', 'w3', 'w4'].map(id => document.getElementById(id));
+    
     const step2Section = document.getElementById('step2Section');
-    const step2LockMsg = document.getElementById('step2LockMsg');
+    const step3Section = document.getElementById('step3Section');
     const cipherDisplay = document.getElementById('cipherDisplay');
     const answerInput = document.getElementById('answerInput');
 
@@ -225,14 +230,15 @@
 
     substitutionMap = generateSubstitutionMap();
 
+    // STEP1: 入力制御（1〜9のみ許可・0不可）
     leftInputs.forEach((input, index) => {
       input.addEventListener('input', () => {
-        input.value = input.value.replace(/[^0-9]/g, '');
+        // 1-9の数字のみ残し、0や記号・文字を除去
+        input.value = input.value.replace(/[^1-9]/g, '');
         if (input.value && index < leftInputs.length - 1) {
           leftInputs[index + 1].focus();
         }
         calculateStep1();
-        updateDisplay();
       });
 
       input.addEventListener('keydown', (e) => {
@@ -251,30 +257,29 @@
           rightInputs[0].value = sumStr[0];
           rightInputs[1].value = sumStr[1];
           rightInputs[2].value = sumStr[2];
-          unlockStep2();
+          
+          // STEP1クリア -> STEP2を表示
+          showStep2();
           return;
         }
       }
       rightInputs.forEach(i => i.value = '');
-      lockStep2();
+      hideStep2();
     }
 
-    function unlockStep2() {
-      step2Section.classList.remove('opacity-50', 'pointer-events-none');
-      step2LockMsg.classList.add('hidden');
-      kanjiInputs.forEach(input => input.disabled = false);
+    function showStep2() {
+      if (step2Section.classList.contains('hidden')) {
+        step2Section.classList.remove('hidden');
+      }
     }
 
-    function lockStep2() {
-      step2Section.classList.add('opacity-50', 'pointer-events-none');
-      step2LockMsg.classList.remove('hidden');
-      kanjiInputs.forEach(input => {
-        input.disabled = true;
-        input.value = '';
-      });
-      currentReadings = null;
+    function hideStep2() {
+      step2Section.classList.add('hidden');
+      kanjiInputs.forEach(input => input.value = '');
+      hideStep3();
     }
 
+    // STEP2: 漢字入力制御
     kanjiInputs.forEach((input, index) => {
       let isComposing = false;
 
@@ -306,6 +311,18 @@
       });
     });
 
+    function showStep3() {
+      if (step3Section.classList.contains('hidden')) {
+        step3Section.classList.remove('hidden');
+      }
+    }
+
+    function hideStep3() {
+      step3Section.classList.add('hidden');
+      currentReadings = null;
+      answerInput.value = '';
+    }
+
     async function updateDisplay() {
       const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
       const words = kanjiInputs.map(i => i.value.trim());
@@ -314,12 +331,9 @@
       const isWordsComplete = words.every((w, idx) => w.length === parseInt(kanjiInputs[idx].getAttribute('maxlength'), 10));
 
       if (!isDigitsComplete || !isWordsComplete) {
-        currentReadings = null;
-        cipherDisplay.innerText = '※STEP1・2を正しく入力すると暗号文が現れます';
+        hideStep3();
         return;
       }
-
-      cipherDisplay.innerText = '判定中...';
 
       try {
         const res = await fetch('/api/check', {
@@ -338,13 +352,14 @@
 
           const encryptedWords = currentReadings.map(reading => encryptTextWithMap(reading, substitutionMap));
           cipherDisplay.innerText = encryptedWords.join(' ');
+          
+          // STEP2判定成功 -> STEP3を表示
+          showStep3();
         } else {
-          currentReadings = null;
-          cipherDisplay.innerText = data.error || '※STEP1・2を正しく入力すると暗号文が現れます';
+          hideStep3();
         }
       } catch (err) {
-        currentReadings = null;
-        cipherDisplay.innerText = '通信エラーが発生しました';
+        hideStep3();
       }
     }
 
