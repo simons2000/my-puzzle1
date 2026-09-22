@@ -99,7 +99,12 @@
     }
   </style>
 </head>
-<body class="min-h-screen py-8 px-2 sm:px-4 flex flex-col items-center justify-center">
+<body class="min-h-screen py-8 px-2 sm:px-4 flex flex-col items-center justify-center relative">
+
+  <!-- リセットボタン (右上のあたり) -->
+  <button id="resetBtn" class="absolute top-4 right-4 sm:top-6 sm:right-6 border border-green-500/50 hover:border-green-400 text-green-400 hover:bg-green-500/10 font-mono text-xs sm:text-sm px-3 py-1.5 rounded transition-all">
+    RESET
+  </button>
 
   <main class="w-full max-w-xl space-y-6 border border-green-500/30 p-5 sm:p-8 rounded-lg bg-black relative">
     
@@ -168,7 +173,7 @@
           <div id="cipherDisplay" class="text-xs sm:text-base md:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] inline-flex items-center justify-center"></div>
         </div>
 
-        <!-- 解錠 ⇨ 入力欄 (上部にスペースを追加) -->
+        <!-- 解錠 ⇨ 入力欄 -->
         <div id="answerSection" class="hidden flex flex-col items-center justify-center gap-3 pt-4 fade-in">
           <div class="flex items-center justify-center gap-3">
             <span class="text-2xl sm:text-3xl font-extrabold text-green-400">解錠</span>
@@ -183,31 +188,32 @@
               required
             >
           </div>
-          <!-- 解答欄の下に表示されるCLEAR表示 (スペースを調整) -->
-          <div id="inlineClearMessage" class="hidden text-2xl sm:text-3xl font-black text-green-400 tracking-widest pt-4 fade-in">
-            CLEAR
-          </div>
         </div>
       </section>
 
     </div>
 
-    <!-- 不正解（INCORRECT）ポップアップ (1秒間表示・バツマークなし) -->
-    <div id="incorrectModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-      <div class="bg-gray-950 border-2 border-red-500 rounded-xl p-6 max-w-xs w-full text-center space-y-3 pop-in shadow-[0_0_30px_rgba(239,68,68,0.4)]">
-        <h3 class="text-2xl font-black text-red-500 tracking-wider">INCORRECT</h3>
-      </div>
-    </div>
-
-    <!-- クリア（CLEAR）ポップアップ (2秒間表示) -->
-    <div id="clearModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-      <div class="bg-gray-950 border-2 border-green-400 rounded-xl p-8 max-w-xs w-full text-center space-y-4 pop-in shadow-[0_0_30px_rgba(74,222,128,0.3)]">
-        <div class="text-5xl">🔓</div>
-        <h3 class="text-3xl font-black text-green-400 tracking-wider">CLEAR</h3>
-      </div>
-    </div>
-
   </main>
+
+  <!-- CLEAR表示 (メイン枠の外側に配置) -->
+  <div id="inlineClearMessage" class="hidden text-3xl sm:text-4xl font-black text-green-400 tracking-widest pt-6 fade-in text-center">
+    CLEAR
+  </div>
+
+  <!-- 不正解（INCORRECT）ポップアップ -->
+  <div id="incorrectModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div class="bg-gray-950 border-2 border-red-500 rounded-xl p-6 max-w-xs w-full text-center space-y-3 pop-in shadow-[0_0_30px_rgba(239,68,68,0.4)]">
+      <h3 class="text-2xl font-black text-red-500 tracking-wider">INCORRECT</h3>
+    </div>
+  </div>
+
+  <!-- クリア（CLEAR）ポップアップ -->
+  <div id="clearModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div class="bg-gray-950 border-2 border-green-400 rounded-xl p-8 max-w-xs w-full text-center space-y-4 pop-in shadow-[0_0_30px_rgba(74,222,128,0.3)]">
+      <div class="text-5xl">🔓</div>
+      <h3 class="text-3xl font-black text-green-400 tracking-wider">CLEAR</h3>
+    </div>
+  </div>
 
   <script>
     const ALL_HIRAGANA = [
@@ -215,7 +221,7 @@
       'さ','し','す','せ','そ','た','ち','つ','て','と',
       'な','に','ぬ','ね','の','は','ひ','ふ','へ','ほ',
       'ま','み','む','め','も','や','ゆ','よ','ら','り',
-      'る','れ','ろ','わ','を','ん',
+      'る','れ','ろ','わ','를'.replace('를','を'),'ん',
       'が','ぎ','ぐ','げ','ご','ざ','じ','ず','ぜ','ぞ',
       'だ','ぢ','づ','で','ど','ば','び','ぶ','べ','ぼ',
       'ぱ','ぴ','ぷ','ぺ','ぽ',
@@ -273,12 +279,13 @@
     const clearModal = document.getElementById('clearModal');
     const inlineClearMessage = document.getElementById('inlineClearMessage');
     const incorrectModal = document.getElementById('incorrectModal');
+    const resetBtn = document.getElementById('resetBtn');
 
     let currentReadings = null;
     let fetchRequestId = 0;
     let isCleared = false;
 
-    // STEP1: 入力制御（すべて埋まってから判定）
+    // STEP1: 入力制御
     leftInputs.forEach((input, index) => {
       input.addEventListener('input', () => {
         input.value = input.value.replace(/[^0-9]/g, '');
@@ -297,9 +304,7 @@
 
     function calculateStep1() {
       const vals = leftInputs.map(i => i.value);
-      // すべて埋まってから判定する
       if (vals.every(v => v !== '')) {
-        // どこかに '0' が含まれている場合は不正解ポップアップを表示してクリア
         if (vals.includes('0')) {
           rightInputs.forEach(i => i.value = '');
           hideStep2();
@@ -392,7 +397,6 @@
       isCleared = false;
     }
 
-    // INCORRECT ポップアップを 1.0秒表示
     function showIncorrectPopup() {
       incorrectModal.classList.remove('hidden');
       setTimeout(() => {
@@ -440,7 +444,6 @@
           cipherDisplay.innerText = encryptedWords.join('   ');
           
           answerSection.classList.remove('hidden');
-          answerInput.focus();
         } else {
           hideStep3();
           showIncorrectPopup();
@@ -453,7 +456,6 @@
       }
     }
 
-    // 解錠の解答欄でEnterキーが押されたときの判定
     answerInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         checkAnswer();
@@ -466,20 +468,49 @@
       const userInput = answerInput.value.trim();
       if (userInput === expectedAnswer) {
         isCleared = true;
-        answerInput.disabled = true; // 解答欄をロック
+        answerInput.disabled = true;
         
-        // 1. ポップアップを表示（2秒間）
         clearModal.classList.remove('hidden');
         setTimeout(() => {
           clearModal.classList.add('hidden');
         }, 2000);
 
-        // 2. 解答欄の下に同じ色の太文字「CLEAR」を表示
         inlineClearMessage.classList.remove('hidden');
       } else {
         showIncorrectPopup();
       }
     }
+
+    // 初期状態にセットする関数（初期値: 38+59+32=129 ＆ 子供、石炭、大人、一人前）
+    function initDefaultState() {
+      const initialDigits = ['3', '8', '5', '9', '3', '2'];
+      initialDigits.forEach((val, idx) => {
+        leftInputs[idx].value = val;
+      });
+      calculateStep1(); // これにより自動で右側(129)とSTEP2が表示される
+
+      const initialWords = ['子供', '石炭', '大人', '一人前'];
+      initialWords.forEach((word, idx) => {
+        kanjiInputs[idx].value = word;
+      });
+
+      updateDisplay(); // 自動で暗号生成を走らせる
+    }
+
+    // リセットボタンのイベント
+    resetBtn.addEventListener('click', () => {
+      hideStep3();
+      hideStep2();
+      leftInputs.forEach(i => i.value = '');
+      rightInputs.forEach(i => i.value = '');
+      kanjiInputs.forEach(i => i.value = '');
+      initDefaultState();
+    });
+
+    // 初回ロード時に初期状態を流し込む
+    window.addEventListener('DOMContentLoaded', () => {
+      initDefaultState();
+    });
   </script>
 </body>
 </html>
