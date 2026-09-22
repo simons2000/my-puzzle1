@@ -71,6 +71,15 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.3; }
     }
+
+    /* 枠線矢印（塗りつぶしなし）共通デザイン */
+    .outline-arrow {
+      color: transparent;
+      -webkit-text-stroke: 2px #4ade80;
+      font-weight: 900;
+      display: inline-block;
+      line-height: 1;
+    }
   </style>
 </head>
 <body class="min-h-screen py-8 px-2 sm:px-4 flex flex-col items-center justify-center">
@@ -134,9 +143,9 @@
         </div>
       </section>
 
-      <!-- STEP2 と STEP3 の間の下矢印 (STEP2クリア判定開始で表示) -->
-      <div id="arrowDivider" class="hidden text-center py-1 fade-in">
-        <span class="text-2xl font-bold text-green-400">⇩</span>
+      <!-- STEP2 と STEP3 の間の下矢印 (枠線のみ・特大) -->
+      <div id="arrowDivider" class="hidden text-center py-2 fade-in">
+        <span class="outline-arrow text-4xl sm:text-5xl">⇩</span>
       </div>
 
       <!-- STEP 3 (STEP2クリア判定開始で表示) -->
@@ -149,9 +158,10 @@
           <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-green-300 tracking-wider min-h-[28px] flex items-center justify-center"></div>
         </div>
 
-        <!-- 解錠 ➔ 入力欄 -->
+        <!-- 解錠 ⇨ 入力欄 (枠線のみ・特大の右矢印) -->
         <div class="flex items-center justify-center gap-3 pt-2">
-          <span class="text-xl sm:text-2xl font-extrabold text-green-400">解錠 ➔</span>
+          <span class="text-xl sm:text-2xl font-extrabold text-green-400">解錠</span>
+          <span class="outline-arrow text-3xl sm:text-4xl">⇨</span>
           <input 
             type="text" 
             id="answerInput" 
@@ -347,7 +357,6 @@
         return;
       }
 
-      // STEP2入力完了時に下矢印とSTEP3を表示
       showStep3();
       cipherDisplay.innerText = 'generating...';
       cipherDisplay.classList.add('pulse-loading', 'text-yellow-400');
