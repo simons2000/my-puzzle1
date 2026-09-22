@@ -39,12 +39,13 @@ export default async function handler(req, res) {
 
     // 2. 熟語の実在チェック & 読み取得
     const readings = [];
-    const clientID = process.env.YAHOO_CLIENT_ID;
+    const rawClientID = process.env.YAHOO_CLIENT_ID || "";
+    const clientID = rawClientID.trim();
 
     for (const word of words) {
       let wordReading = "";
 
-      // 【1】 Yahoo! JLP API（最優先・完全な辞書判定）
+      // 【方法1】 Yahoo! JLP API（最優先）
       if (clientID) {
         try {
           const yahooRes = await fetch('https://jlp.yahooapis.jp/MAService/V2/parse', {
@@ -65,56 +66,46 @@ export default async function handler(req, res) {
             const yahooData = await yahooRes.json();
             const tokens = yahooData?.result?.tokens || [];
 
-            // 正しい名詞/熟語として1単語（または適切な複合語）で辞書認識されているか
             if (tokens.length >= 1) {
               const fullReading = tokens.map(t => t[1] || "").join('');
               if (fullReading) {
+                // カタカナをひらがなに変換
                 wordReading = fullReading.replace(/[\u30a1-\u30f6]/g, m =>
                   String.fromCharCode(m.charCodeAt(0) - 0x60)
                 );
               }
             }
+          } else {
+            console.error('Yahoo API Res Not OK:', await yahooRes.text());
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error('Yahoo API Fetch Error:', e);
+        }
       }
 
-      // 【2】 Wiktionary / Wikipedia API (Yahoo未設定時の検索フォールバック)
+      // 【方法2】 API未設定または取得失敗時の自動救済フォールバック
       if (!wordReading) {
-        try {
-          // ja.wiktionary (日本語国語辞典) を優先検索
-          const wiktionaryRes = await fetch(
-            `https://ja.wiktionary.org/w/api.php?action=query&titles=${encodeURIComponent(word)}&format=json&origin=*`
-          );
-          if (wiktionaryRes.ok) {
-            const wData = await wiktionaryRes.json();
-            const pages = wData?.query?.pages || {};
-            const pageId = Object.keys(pages)[0];
-
-            if (pageId !== "-1") {
-              // Wiktionaryに存在する単語
-              wordReading = await getFallbackReading(word);
-            }
-          }
-
-          // WiktionaryになくWikipediaのリダイレクト/曖昧さ回避も含めて検索
-          if (!wordReading) {
-            const wikiRes = await fetch(
-              `https://ja.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(word)}&redirects=1&format=json&origin=*`
+        // kanjiapi.devから読みを合成して救済（「人口」「一人前」などが拒否されるのを防ぐ）
+        let fallbackReading = "";
+        for (const char of word) {
+          const kRes = await fetch(`https://kanjiapi.dev/v1/kanji/${encodeURIComponent(char)}`);
+          if (kRes.ok) {
+            const kData = await kRes.json();
+            const onReadings = kData.on_readings || [];
+            const kunReadings = kData.kun_readings || [];
+            // 音読み優先、無ければ訓読み
+            let r = onReadings.length > 0 ? onReadings[0] : (kunReadings[0] || char);
+            fallbackReading += r.replace(/\./g, '').replace(/[\u30a1-\u30f6]/g, m =>
+              String.fromCharCode(m.charCodeAt(0) - 0x60)
             );
-            if (wikiRes.ok) {
-              const wikiData = await wikiRes.json();
-              const pages = wikiData?.query?.pages || {};
-              const pageId = Object.keys(pages)[0];
-
-              if (pageId !== "-1") {
-                wordReading = await getFallbackReading(word);
-              }
-            }
+          } else {
+            fallbackReading += char;
           }
-        } catch (e) {}
+        }
+        wordReading = fallbackReading;
       }
 
-      // 実在辞書に全く引っかからなかった場合（例: 「一人風」など）
+      // 何らかの理由で読みが作れなかった場合のみ弾く
       if (!wordReading) {
         return res.status(200).json({
           success: false,
@@ -134,22 +125,4 @@ export default async function handler(req, res) {
     console.error('Server error:', err);
     return res.status(500).json({ error: 'サーバー処理でエラーが発生しました。' });
   }
-}
-
-// 漢字ごとの音/訓読みから平仮名読みを組み立てる補助関数
-async function getFallbackReading(word) {
-  let fallback = "";
-  for (const char of word) {
-    const kRes = await fetch(`https://kanjiapi.dev/v1/kanji/${encodeURIComponent(char)}`);
-    if (kRes.ok) {
-      const kData = await kRes.json();
-      const onReadings = kData.on_readings || [];
-      const kunReadings = kData.kun_readings || [];
-      let r = onReadings.length > 0 ? onReadings[0] : (kunReadings[0] || char);
-      fallback += r.replace(/\./g, '').replace(/[\u30a1-\u30f6]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));
-    } else {
-      fallback += char;
-    }
-  }
-  return fallback;
 }
