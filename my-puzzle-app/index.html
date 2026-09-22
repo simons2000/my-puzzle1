@@ -168,8 +168,8 @@
           <div id="cipherDisplay" class="text-xs sm:text-base md:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] inline-flex items-center justify-center"></div>
         </div>
 
-        <!-- 解錠 ⇨ 入力欄 -->
-        <div id="answerSection" class="hidden flex flex-col items-center justify-center gap-3 pt-1 fade-in">
+        <!-- 解錠 ⇨ 入力欄 (上部にスペースを追加) -->
+        <div id="answerSection" class="hidden flex flex-col items-center justify-center gap-3 pt-4 fade-in">
           <div class="flex items-center justify-center gap-3">
             <span class="text-2xl sm:text-3xl font-extrabold text-green-400">解錠</span>
             <svg class="outline-arrow-svg w-8 h-6 sm:w-10 sm:h-8" viewBox="0 0 50 36">
@@ -183,8 +183,8 @@
               required
             >
           </div>
-          <!-- 解答欄の下に表示されるCLEAR表示 -->
-          <div id="inlineClearMessage" class="hidden text-2xl sm:text-3xl font-black text-green-400 tracking-widest pt-2 fade-in">
+          <!-- 解答欄の下に表示されるCLEAR表示 (スペースを調整) -->
+          <div id="inlineClearMessage" class="hidden text-2xl sm:text-3xl font-black text-green-400 tracking-widest pt-4 fade-in">
             CLEAR
           </div>
         </div>
@@ -278,7 +278,7 @@
     let fetchRequestId = 0;
     let isCleared = false;
 
-    // STEP1: 入力制御 (0〜9許可、ただし0が入力された場合は不正解判定)
+    // STEP1: 入力制御（すべて埋まってから判定）
     leftInputs.forEach((input, index) => {
       input.addEventListener('input', () => {
         input.value = input.value.replace(/[^0-9]/g, '');
@@ -297,8 +297,9 @@
 
     function calculateStep1() {
       const vals = leftInputs.map(i => i.value);
+      // すべて埋まってから判定する
       if (vals.every(v => v !== '')) {
-        // どこかに '0' が含まれている場合は不正解ポップアップを表示して処理を止める
+        // どこかに '0' が含まれている場合は不正解ポップアップを表示してクリア
         if (vals.includes('0')) {
           rightInputs.forEach(i => i.value = '');
           hideStep2();
@@ -315,7 +316,6 @@
           showStep2();
           return;
         } else {
-          // 合計のどこかに0が含まれる場合も不正解
           rightInputs.forEach(i => i.value = '');
           hideStep2();
           showIncorrectPopup();
@@ -441,8 +441,6 @@
           
           answerSection.classList.remove('hidden');
           answerInput.focus();
-
-          checkAnswer();
         } else {
           hideStep3();
           showIncorrectPopup();
@@ -455,8 +453,12 @@
       }
     }
 
-    // 暗号解読のリアルタイム判定
-    answerInput.addEventListener('input', checkAnswer);
+    // 解錠の解答欄でEnterキーが押されたときの判定
+    answerInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        checkAnswer();
+      }
+    });
 
     function checkAnswer() {
       if (!expectedAnswer || isCleared) return;
@@ -474,6 +476,8 @@
 
         // 2. 解答欄の下に同じ色の太文字「CLEAR」を表示
         inlineClearMessage.classList.remove('hidden');
+      } else {
+        showIncorrectPopup();
       }
     }
   </script>
