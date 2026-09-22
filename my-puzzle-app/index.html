@@ -92,9 +92,9 @@
       animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
-    /* 熟語ごとの間隔を確保しつつ、絶対に改行させない */
+    /* 熟語ごとの間隔を狭め、絶対に改行させない */
     .cipher-word-spacing {
-      word-spacing: 1.2em;
+      word-spacing: 0.5em;
       white-space: nowrap;
     }
   </style>
@@ -163,9 +163,9 @@
 
       <!-- STEP 3 -->
       <section id="step3Section" class="hidden space-y-3 fade-in">
-        <!-- 暗号文表示エリア（横スクロール可能、改行なし） -->
-        <div class="bg-gray-950 border border-green-500/30 p-4 rounded text-center overflow-x-auto">
-          <div id="cipherDisplay" class="text-sm sm:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] inline-flex items-center justify-center"></div>
+        <!-- 暗号文表示エリア（折り返しなし・スクロールなし） -->
+        <div class="bg-gray-950 border border-green-500/30 p-4 rounded text-center overflow-hidden">
+          <div id="cipherDisplay" class="text-xs sm:text-base md:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] inline-flex items-center justify-center"></div>
         </div>
 
         <!-- 解錠 ⇨ 入力欄 -->
@@ -393,7 +393,7 @@
       showStep3();
       answerSection.classList.add('hidden');
       cipherDisplay.innerText = 'generating...';
-      cipherDisplay.className = 'text-sm sm:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] inline-flex items-center justify-center pulse-loading';
+      cipherDisplay.className = 'text-xs sm:text-base md:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] inline-flex items-center justify-center pulse-loading';
 
       const currentRequestId = ++fetchRequestId;
 
@@ -413,7 +413,7 @@
 
           const encryptedWords = currentReadings.map(reading => encryptTextWithMap(reading, substitutionMap));
           
-          cipherDisplay.className = 'text-sm sm:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] inline-flex items-center justify-center';
+          cipherDisplay.className = 'text-xs sm:text-base md:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] inline-flex items-center justify-center';
           cipherDisplay.innerText = encryptedWords.join('   ');
           
           answerSection.classList.remove('hidden');
