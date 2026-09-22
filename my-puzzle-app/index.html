@@ -83,7 +83,7 @@
       vertical-align: middle;
     }
 
-    /* クリア/エラーポップアップのアニメーション */
+    /* ポップアップのアニメーション */
     @keyframes popIn {
       0% { transform: scale(0.8); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
@@ -92,9 +92,10 @@
       animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
-    /* 熟語ごとの間隔を広く確保 */
+    /* 熟語ごとの間隔を確保しつつ、絶対に改行させない */
     .cipher-word-spacing {
-      word-spacing: 1.5em;
+      word-spacing: 1.2em;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -162,12 +163,12 @@
 
       <!-- STEP 3 -->
       <section id="step3Section" class="hidden space-y-3 fade-in">
-        <!-- 暗号文表示エリア -->
-        <div class="bg-gray-950 border border-green-500/30 p-4 rounded text-center">
-          <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] flex items-center justify-center"></div>
+        <!-- 暗号文表示エリア（横スクロール可能、改行なし） -->
+        <div class="bg-gray-950 border border-green-500/30 p-4 rounded text-center overflow-x-auto">
+          <div id="cipherDisplay" class="text-sm sm:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] inline-flex items-center justify-center"></div>
         </div>
 
-        <!-- 解錠 ⇨ 入力欄 (初期状態は hidden。暗号文生成完了時に表示) -->
+        <!-- 解錠 ⇨ 入力欄 -->
         <div id="answerSection" class="hidden flex items-center justify-center gap-3 pt-1 fade-in">
           <span class="text-2xl sm:text-3xl font-extrabold text-green-400">解錠</span>
           <svg class="outline-arrow-svg w-8 h-6 sm:w-10 sm:h-8" viewBox="0 0 50 36">
@@ -185,7 +186,7 @@
 
     </div>
 
-    <!-- 不正解（INCORRECT）ポップアップ モーダル (1秒間表示) -->
+    <!-- 不正解（INCORRECT）ポップアップ (1秒間表示) -->
     <div id="incorrectModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
       <div class="bg-gray-950 border-2 border-red-500 rounded-xl p-6 max-w-xs w-full text-center space-y-3 pop-in shadow-[0_0_30px_rgba(239,68,68,0.4)]">
         <div class="text-4xl">❌</div>
@@ -193,18 +194,11 @@
       </div>
     </div>
 
-    <!-- クリア演出モーダル -->
+    <!-- クリア（CLEAR）ポップアップ (2秒間表示) -->
     <div id="clearModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-      <div class="bg-gray-950 border-2 border-green-400 rounded-xl p-8 max-w-sm w-full text-center space-y-6 pop-in shadow-[0_0_30px_rgba(74,222,128,0.3)]">
+      <div class="bg-gray-950 border-2 border-green-400 rounded-xl p-8 max-w-xs w-full text-center space-y-4 pop-in shadow-[0_0_30px_rgba(74,222,128,0.3)]">
         <div class="text-5xl">🔓</div>
-        <div class="space-y-2">
-          <h3 class="text-2xl font-black text-green-400 tracking-wider">UNLOCKED!</h3>
-          <p class="text-lg font-bold text-green-200">解錠成功！</p>
-          <p class="text-xs text-green-500/80 pt-2">すべての暗号を見事に解読しました！</p>
-        </div>
-        <button id="closeModalBtn" class="w-full bg-green-400 hover:bg-green-300 text-black font-extrabold py-3 rounded text-base transition-all active:scale-[0.98]">
-          閉じる
-        </button>
+        <h3 class="text-3xl font-black text-green-400 tracking-wider">CLEAR</h3>
       </div>
     </div>
 
@@ -272,11 +266,11 @@
     const answerSection = document.getElementById('answerSection');
     const answerInput = document.getElementById('answerInput');
     const clearModal = document.getElementById('clearModal');
-    const closeModalBtn = document.getElementById('closeModalBtn');
     const incorrectModal = document.getElementById('incorrectModal');
 
     let currentReadings = null;
     let fetchRequestId = 0;
+    let isCleared = false;
 
     // STEP1: 入力制御
     leftInputs.forEach((input, index) => {
@@ -368,14 +362,15 @@
     function hideStep3() {
       arrowDivider.classList.add('hidden');
       step3Section.classList.add('hidden');
-      answerSection.classList.add('hidden'); // 解錠解答欄も非表示に
+      answerSection.classList.add('hidden');
       currentReadings = null;
       answerInput.value = '';
       cipherDisplay.innerText = '';
       cipherDisplay.classList.remove('pulse-loading');
+      isCleared = false;
     }
 
-    // INCORRECT ポップアップを 1.0秒（1000ms）表示
+    // INCORRECT ポップアップを 1.0秒表示
     function showIncorrectPopup() {
       incorrectModal.classList.remove('hidden');
       setTimeout(() => {
@@ -396,9 +391,9 @@
       }
 
       showStep3();
-      answerSection.classList.add('hidden'); // 生成中は解答欄を隠す
+      answerSection.classList.add('hidden');
       cipherDisplay.innerText = 'generating...';
-      cipherDisplay.className = 'text-base sm:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] flex items-center justify-center pulse-loading';
+      cipherDisplay.className = 'text-sm sm:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] inline-flex items-center justify-center pulse-loading';
 
       const currentRequestId = ++fetchRequestId;
 
@@ -418,10 +413,9 @@
 
           const encryptedWords = currentReadings.map(reading => encryptTextWithMap(reading, substitutionMap));
           
-          cipherDisplay.className = 'text-base sm:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] flex items-center justify-center';
+          cipherDisplay.className = 'text-sm sm:text-lg font-mono text-green-300 tracking-wider cipher-word-spacing min-h-[28px] inline-flex items-center justify-center';
           cipherDisplay.innerText = encryptedWords.join('   ');
           
-          // 暗号文の生成・表示が完了したため解答欄を表示
           answerSection.classList.remove('hidden');
           answerInput.focus();
 
@@ -442,17 +436,17 @@
     answerInput.addEventListener('input', checkAnswer);
 
     function checkAnswer() {
-      if (!expectedAnswer) return;
+      if (!expectedAnswer || isCleared) return;
       
       const userInput = answerInput.value.trim();
       if (userInput === expectedAnswer) {
+        isCleared = true;
         clearModal.classList.remove('hidden');
+        setTimeout(() => {
+          clearModal.classList.add('hidden');
+        }, 2000);
       }
     }
-
-    closeModalBtn.addEventListener('click', () => {
-      clearModal.classList.add('hidden');
-    });
   </script>
 </body>
 </html>
