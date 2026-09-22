@@ -131,7 +131,7 @@
       <section class="space-y-4">
         <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP3 暗号文を解読し、解錠せよ</h2>
 
-        <!-- 暗号文表示エリア (置換後の暗号文・分かち書き) -->
+        <!-- 暗号文表示エリア -->
         <div class="bg-gray-950 border border-yellow-500/30 p-4 rounded text-center space-y-2">
           <p class="text-xs text-yellow-500/70">【 暗号文 】</p>
           <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-yellow-300 tracking-wider">
@@ -289,20 +289,15 @@
 
     /**
      * 読み（ひらがな）をSTEP1の数字に基づいて暗号化する関数
-     * ※ご指定の暗号ロジック（各文字のシフトや変換規則）を適用します
      */
     function encodeKana(kanaStr, digits) {
       if (!kanaStr) return '';
-      
       const shiftKey = parseInt(digits[0] || '1', 10);
       
       return kanaStr.split('').map(char => {
-        // 濁点・半濁点の簡易正規化（必要に応じて）
         const normalizedChar = char.normalize('NFKC');
         const idx = AIUEO.indexOf(normalizedChar);
-        
         if (idx !== -1) {
-          // 五十音順でシフト
           const newIdx = (idx + shiftKey) % AIUEO.length;
           return AIUEO[newIdx];
         }
@@ -310,69 +305,55 @@
       }).join('');
     }
 
-    // リアルタイムで暗号化文（分かち書き）を生成・更新
-    function updateCipherDisplay() {
+    // 正しい解錠コード（正解文字列）を取得
+    function getExpectedAnswer() {
       const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
       const words = kanjiInputs.map(i => i.value.trim());
 
-      // 未入力項目がある場合
       if (digits.length < 9 || words.some(w => w === '')) {
-        cipherDisplay.innerText = '※STEP1・2を入力すると暗号文が現れます';
-        return;
+        return null;
       }
 
-      // 1. 各漢字熟語の読みを取得
-      // 2. 読みをSTEP1の数字で暗号化
-      // 3. スラッシュで分かち書き
-      const cipherWords = words.map(word => {
+      // 各熟語の読みを暗号化し、スラッシュなしの連続文字列として結合
+      return words.map(word => {
         const kana = KANJI_READING_MAP[word] || word;
         return encodeKana(kana, digits);
-      });
-
-      cipherDisplay.innerText = cipherWords.join(' / ');
+      }).join('');
     }
 
-    // フォーム検証・送信処理
+    // リアルタイムで暗号文（スラッシュなし）を生成・更新
+    function updateCipherDisplay() {
+      const expected = getExpectedAnswer();
+      if (expected) {
+        cipherDisplay.innerText = expected;
+      } else {
+        cipherDisplay.innerText = '※STEP1・2を入力すると暗号文が現れます';
+      }
+    }
+
+    // フォーム検証・判定処理
     const form = document.getElementById('puzzleForm');
     const resultDiv = document.getElementById('result');
     const submitBtn = document.getElementById('submitBtn');
 
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
 
       resultDiv.classList.add('hidden');
       resultDiv.className = 'hidden rounded p-4 text-center text-sm font-bold border';
-      submitBtn.disabled = true;
-      submitBtn.innerText = '検証中...';
 
-      const targetDigits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
-      const words = kanjiInputs.map(i => i.value.trim());
+      const expectedAnswer = getExpectedAnswer();
       const userInputAnswer = answerInput.value.trim();
 
-      try {
-        const response = await fetch('/api/check', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ targetDigits, words, answer: userInputAnswer })
-        });
+      resultDiv.classList.remove('hidden');
 
-        const data = await response.json();
-        resultDiv.classList.remove('hidden');
-
-        if (data.success) {
-          resultDiv.classList.add('bg-yellow-400', 'text-black', 'border-yellow-400');
-          resultDiv.innerHTML = `🎉 解錠成功！<br>正解です！`;
-        } else {
-          resultDiv.classList.add('bg-red-950', 'text-red-400', 'border-red-800');
-          resultDiv.innerText = data.error || '解錠に失敗しました（正しく暗号化されていません）。';
-        }
-      } catch (err) {
-        resultDiv.classList.remove('hidden');
+      // 判定ロジック: 入力が揃っており、かつ期待される暗号化文字列と完全一致するか
+      if (expectedAnswer && userInputAnswer === expectedAnswer) {
+        resultDiv.classList.add('bg-yellow-400', 'text-black', 'border-yellow-400');
+        resultDiv.innerHTML = `🎉 解錠成功！<br>正解です！`;
+      } else {
         resultDiv.classList.add('bg-red-950', 'text-red-400', 'border-red-800');
-        resultDiv.innerText = '通信エラーが発生しました。';
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = '解錠（判定）';
+        resultDiv.innerText = '不正解です。暗号化された文字列を正しく解読してください。';
       }
     });
   </script>
