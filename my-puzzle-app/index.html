@@ -8,105 +8,114 @@
   <style>
     body {
       background-color: #000000;
-      color: #ffffff;
+      color: #facc15; /* 基本文字色：黄色 */
       font-family: "Hiragino Kaku Gothic ProN", "メイリオ", sans-serif;
     }
     /* 白マス（入力ボックス）の共通スタイル */
     .square-input {
       background-color: #ffffff !important;
-      color: #000000 !important;
-      border: 2px solid #ffffff;
+      color: #f59e0b !important; /* 入力文字：アンバーイエロー */
+      border: 2px solid #facc15;
       border-radius: 4px;
-      font-weight: bold;
+      font-weight: font-extrabold;
       text-align: center;
       outline: none;
     }
     .square-input:focus {
-      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.6);
     }
   </style>
 </head>
-<body class="min-h-screen py-10 px-4 flex flex-col items-center justify-center">
+<body class="min-h-screen py-8 px-2 sm:px-4 flex flex-col items-center justify-center">
 
-  <main class="w-full max-w-lg space-y-10 border border-gray-800 p-6 sm:p-8 rounded-lg bg-black">
+  <main class="w-full max-w-xl space-y-8 border border-yellow-500/30 p-5 sm:p-8 rounded-lg bg-black">
     
     <!-- タイトル -->
-    <header class="text-center border-b border-gray-800 pb-4">
-      <h1 class="text-3xl font-extrabold tracking-widest">解錠せよ</h1>
+    <header class="text-center border-b border-yellow-500/30 pb-4">
+      <h1 class="text-3xl font-extrabold tracking-widest text-yellow-400">解錠せよ</h1>
     </header>
 
-    <form id="puzzleForm" class="space-y-10">
+    <form id="puzzleForm" class="space-y-8">
 
       <!-- STEP 1 -->
       <section class="space-y-4">
-        <h2 class="text-lg font-bold">STEP1 マスに0~9の数字を入れ、正しい式にせよ</h2>
+        <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP1 マスに0~9の数字を入れ、正しい式を作れ</h2>
         
-        <!-- 方程式レイアウト: [ ] [ ] + [ ] [ ] + [ ] [ ] = [ ] [ ] [ ] -->
-        <div class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-xl font-bold font-mono">
+        <!-- 数式を横一列に配置（画面幅に合わせて自動調整） -->
+        <div class="flex items-center justify-center gap-1 sm:gap-2 text-yellow-400 font-extrabold font-mono text-base sm:text-2xl overflow-x-auto py-2">
           <!-- 語1 (2桁) -->
-          <input type="text" id="d0" maxlength="1" class="square-input w-8 h-10 sm:w-10 sm:h-12 text-lg sm:text-xl" required>
-          <input type="text" id="d1" maxlength="1" class="square-input w-8 h-10 sm:w-10 sm:h-12 text-lg sm:text-xl" required>
+          <div class="flex gap-1">
+            <input type="text" id="d0" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+            <input type="text" id="d1" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+          </div>
           
-          <span>+</span>
+          <span class="px-0.5">+</span>
           
           <!-- 語2 (2桁) -->
-          <input type="text" id="d2" maxlength="1" class="square-input w-8 h-10 sm:w-10 sm:h-12 text-lg sm:text-xl" required>
-          <input type="text" id="d3" maxlength="1" class="square-input w-8 h-10 sm:w-10 sm:h-12 text-lg sm:text-xl" required>
+          <div class="flex gap-1">
+            <input type="text" id="d2" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+            <input type="text" id="d3" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+          </div>
           
-          <span>+</span>
+          <span class="px-0.5">+</span>
           
           <!-- 語3 (2桁) -->
-          <input type="text" id="d4" maxlength="1" class="square-input w-8 h-10 sm:w-10 sm:h-12 text-lg sm:text-xl" required>
-          <input type="text" id="d5" maxlength="1" class="square-input w-8 h-10 sm:w-10 sm:h-12 text-lg sm:text-xl" required>
+          <div class="flex gap-1">
+            <input type="text" id="d4" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+            <input type="text" id="d5" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+          </div>
           
-          <span>=</span>
+          <span class="px-0.5">=</span>
           
           <!-- 語4 (3桁) -->
-          <input type="text" id="d6" maxlength="1" class="square-input w-8 h-10 sm:w-10 sm:h-12 text-lg sm:text-xl" required>
-          <input type="text" id="d7" maxlength="1" class="square-input w-8 h-10 sm:w-10 sm:h-12 text-lg sm:text-xl" required>
-          <input type="text" id="d8" maxlength="1" class="square-input w-8 h-10 sm:w-10 sm:h-12 text-lg sm:text-xl" required>
+          <div class="flex gap-1">
+            <input type="text" id="d6" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+            <input type="text" id="d7" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+            <input type="text" id="d8" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+          </div>
         </div>
       </section>
 
       <!-- STEP 2 -->
       <section class="space-y-4">
-        <h2 class="text-lg font-bold">STEP2 マスに漢字を入れて、4つの熟語を作れ</h2>
+        <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP2 マスに正しい漢字を入れ、4つの熟語を作れ</h2>
 
-        <div class="grid grid-cols-2 gap-4">
+        <!-- 9個の漢字マスを横一列に配置（熟語ごとに少し間隔を開ける） -->
+        <div class="flex items-center justify-center gap-2 sm:gap-4 overflow-x-auto py-2">
           <!-- 熟語1 (2文字) -->
-          <div class="flex items-center justify-center space-x-1">
-            <input type="text" id="w1_1" maxlength="1" placeholder="漢" class="square-input w-10 h-12 text-xl" required>
-            <input type="text" id="w1_2" maxlength="1" placeholder="字" class="square-input w-10 h-12 text-xl" required>
+          <div class="flex gap-1">
+            <input type="text" id="w1_1" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+            <input type="text" id="w1_2" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
           </div>
 
           <!-- 熟語2 (2文字) -->
-          <div class="flex items-center justify-center space-x-1">
-            <input type="text" id="w2_1" maxlength="1" placeholder="漢" class="square-input w-10 h-12 text-xl" required>
-            <input type="text" id="w2_2" maxlength="1" placeholder="字" class="square-input w-10 h-12 text-xl" required>
+          <div class="flex gap-1">
+            <input type="text" id="w2_1" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+            <input type="text" id="w2_2" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
           </div>
 
           <!-- 熟語3 (2文字) -->
-          <div class="flex items-center justify-center space-x-1">
-            <input type="text" id="w3_1" maxlength="1" placeholder="漢" class="square-input w-10 h-12 text-xl" required>
-            <input type="text" id="w3_2" maxlength="1" placeholder="字" class="square-input w-10 h-12 text-xl" required>
+          <div class="flex gap-1">
+            <input type="text" id="w3_1" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+            <input type="text" id="w3_2" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
           </div>
 
           <!-- 熟語4 (3文字) -->
-          <div class="flex items-center justify-center space-x-1">
-            <input type="text" id="w4_1" maxlength="1" placeholder="漢" class="square-input w-10 h-12 text-xl" required>
-            <input type="text" id="w4_2" maxlength="1" placeholder="字" class="square-input w-10 h-12 text-xl" required>
-            <input type="text" id="w4_3" maxlength="1" placeholder="字" class="square-input w-10 h-12 text-xl" required>
+          <div class="flex gap-1">
+            <input type="text" id="w4_1" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+            <input type="text" id="w4_2" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
+            <input type="text" id="w4_3" maxlength="1" class="square-input w-7 h-9 sm:w-10 sm:h-12 text-base sm:text-xl" required>
           </div>
         </div>
       </section>
 
       <!-- STEP 3 -->
       <section class="space-y-4">
-        <h2 class="text-lg font-bold">STEP3 正しいパスワードを入れ、解錠せよ</h2>
+        <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP3 正しいパスワードを入れ、解錠せよ</h2>
 
-        <div class="bg-gray-900 border border-gray-700 p-4 rounded text-center space-y-2">
-          <p class="text-xs text-gray-400">暗号文</p>
-          <div id="cipherDisplay" class="text-sm font-mono text-gray-300">
+        <div class="bg-gray-950 border border-yellow-500/30 p-4 rounded text-center space-y-2">
+          <p class="text-xs text-yellow-500/70">暗号文</p>
+          <div id="cipherDisplay" class="text-sm font-mono text-yellow-300">
             [STEP1・2の入力完了後に読みが表示されます]
           </div>
         </div>
@@ -114,7 +123,7 @@
         <button 
           type="submit" 
           id="submitBtn"
-          class="w-full bg-white hover:bg-gray-200 text-black font-extrabold py-3.5 rounded text-lg transition-all active:scale-[0.98]"
+          class="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-extrabold py-3.5 rounded text-lg transition-all active:scale-[0.98]"
         >
           解錠（判定）
         </button>
@@ -131,7 +140,6 @@
     const digitInputs = Array.from({length: 9}, (_, i) => document.getElementById(`d${i}`));
     digitInputs.forEach((input, index) => {
       input.addEventListener('input', (e) => {
-        // 半角数字のみ許可
         input.value = input.value.replace(/[^0-9]/g, '');
         if (input.value && index < 8) {
           digitInputs[index + 1].focus();
@@ -140,6 +148,22 @@
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Backspace' && !input.value && index > 0) {
           digitInputs[index - 1].focus();
+        }
+      });
+    });
+
+    // 漢字マスの自動フォーカス移動
+    const kanjiInputIds = ['w1_1', 'w1_2', 'w2_1', 'w2_2', 'w3_1', 'w3_2', 'w4_1', 'w4_2', 'w4_3'];
+    const kanjiInputs = kanjiInputIds.map(id => document.getElementById(id));
+    kanjiInputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        if (input.value && index < kanjiInputs.length - 1) {
+          kanjiInputs[index + 1].focus();
+        }
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !input.value && index > 0) {
+          kanjiInputs[index - 1].focus();
         }
       });
     });
@@ -180,7 +204,7 @@
         resultDiv.classList.remove('hidden');
 
         if (data.success) {
-          resultDiv.classList.add('bg-white', 'text-black', 'border-white');
+          resultDiv.classList.add('bg-yellow-400', 'text-black', 'border-yellow-400');
           resultDiv.innerHTML = `🎉 解錠成功！<br>正解です！`;
           cipherDisplay.innerText = `解錠鍵: ${data.readings.join(' / ')}`;
         } else {
