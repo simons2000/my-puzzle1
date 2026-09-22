@@ -37,12 +37,12 @@
       padding-left: 0.35em;
     }
 
-    /* 2文字用マス（真ん中に薄い区切り線） */
+    /* 2文字用マス */
     .kanji-2len {
       background: #ffffff linear-gradient(to right, transparent 50%, #e5e7eb 50%, transparent 52%);
     }
 
-    /* 3文字用マス（3等分する薄い区切り線2本） */
+    /* 3文字用マス */
     .kanji-3len {
       background: #ffffff linear-gradient(to right, 
         transparent 33.33%, 
@@ -130,7 +130,7 @@
       <section class="space-y-4">
         <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP3 暗号文を解読し、解錠せよ</h2>
 
-        <!-- 暗号文表示エリア（斜線なし・連続表示） -->
+        <!-- 暗号文表示エリア（熟語ごとにスペース区切り） -->
         <div class="bg-gray-950 border border-yellow-500/30 p-4 rounded text-center space-y-2">
           <p class="text-xs text-yellow-500/70">【 暗号文 】</p>
           <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-yellow-300 tracking-wider">
@@ -165,7 +165,6 @@
   </main>
 
   <script>
-    // 漢字熟語からひらがな読みへのマッピングテーブル
     const KANJI_READING_MAP = {
       '人口': 'じんこう',
       '大金': 'たいきん',
@@ -173,8 +172,34 @@
       '一人前': 'いちにんまえ'
     };
 
-    // 五十音リスト
-    const AIUEO = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん';
+    // 五十音表（行シフト用）
+    const GOJUON_TABLE = [
+      ['あ', 'い', 'う', 'え', 'お'],
+      ['か', 'き', 'く', 'け', 'こ'],
+      ['さ', 'し', 'す', 'せ', 'そ'],
+      ['た', 'ち', 'つ', 'て', 'と'],
+      ['な', 'に', 'ぬ', 'ね', 'の'],
+      ['は', 'ひ', 'ふ', 'へ', 'ほ'],
+      ['ま', 'み', 'む', 'め', 'も'],
+      ['や', 'い', 'ゆ', 'え', 'よ'],
+      ['ら', 'り', 'る', 'れ', 'ろ'],
+      ['わ', 'い', 'う', 'え', 'を']
+    ];
+
+    const DAKUTEN_MAP = {
+      'が':'か','ぎ':'き','ぐ':'く','げ':'け','ご':'こ',
+      'ざ':'さ','じ':'し','ず':'す','ぜ':'せ','ぞ':'そ',
+      'だ':'た','ぢ':'ち','づ':'つ','で':'て','ど':'と',
+      'ば':'は','び':'ひ','ぶ':'ふ','べ':'へ','ぼ':'ほ',
+      'ぱ':'は','ぴ':'ひ','ぷ':'ふ','ぺ':'へ','ぽ':'ほ'
+    };
+
+    const DAKUTEN_REVERSE = {
+      'か':'が','き':'ぎ','く':'ぐ','け':'げ','こ':'ご',
+      'さ':'ざ','し':'じ','す':'ず','せ':'ぜ','そ':'ぞ',
+      'た':'だ','ち':'ぢ','つ':'づ','て':'で','と':'ど',
+      'は':'ば','ひ':'び','ふ':'ぶ','へ':'べ','ほ':'ぼ'
+    };
 
     // DOM要素
     const leftInputs = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'].map(id => document.getElementById(id));
@@ -185,7 +210,6 @@
     const cipherDisplay = document.getElementById('cipherDisplay');
     const answerInput = document.getElementById('answerInput');
 
-    // STEP1: 入力処理
     leftInputs.forEach((input, index) => {
       input.addEventListener('input', () => {
         input.value = input.value.replace(/[^0-9]/g, '');
@@ -235,7 +259,6 @@
       });
     }
 
-    // STEP2: 入力・フォーカス制御
     kanjiInputs.forEach((input, index) => {
       let isComposing = false;
 
@@ -268,24 +291,55 @@
     });
 
     /**
-     * 暗号化アルゴリズム
-     * ひらがな文字列とSTEP1の数字列をもとに指定のシフト変換を行う
+     * 正しい五十音表の「行シフト」による暗号化
      */
+    function encryptChar(char, shift) {
+      if (char === 'ん') return 'ん';
+      
+      let isDakuten = false;
+      let baseChar = char.normalize('NFKC');
+
+      if (DAKUTEN_MAP[baseChar]) {
+        isDakuten = true;
+        baseChar = DAKUTEN_MAP[baseChar];
+      }
+
+      // 小文字は大文字化して扱う
+      const smallToBig = {'ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お','ゃ':'や','ゅ':'ゆ','ょ':'よ','っ':'つ'};
+      if (smallToBig[baseChar]) baseChar = smallToBig[baseChar];
+
+      let currentGyou = -1;
+      let currentDan = -1;
+
+      for (let g = 0; g < GOJUON_TABLE.length; g++) {
+        for (let d = 0; d < 5; d++) {
+          if (GOJUON_TABLE[g][d] === baseChar) {
+            currentGyou = g;
+            currentDan = d;
+            break;
+          }
+        }
+        if (currentGyou !== -1) break;
+      }
+
+      if (currentGyou === -1) return char;
+
+      const newGyou = (currentGyou + shift) % GOJUON_TABLE.length;
+      let newChar = GOJUON_TABLE[newGyou][currentDan];
+
+      if (isDakuten && DAKUTEN_REVERSE[newChar]) {
+        newChar = DAKUTEN_REVERSE[newChar];
+      }
+
+      return newChar;
+    }
+
     function encryptText(text, digits) {
       if (!text || !digits) return '';
       const shift = parseInt(digits[0] || '1', 10);
-
-      return text.split('').map(char => {
-        const normChar = char.normalize('NFKC');
-        const idx = AIUEO.indexOf(normChar);
-        if (idx !== -1) {
-          return AIUEO[(idx + shift) % AIUEO.length];
-        }
-        return char;
-      }).join('');
+      return text.split('').map(c => encryptChar(c, shift)).join('');
     }
 
-    // STEP1・2の入力状況を確認
     function getInputsState() {
       const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
       const words = kanjiInputs.map(i => i.value.trim());
@@ -295,7 +349,7 @@
       return { digits, words };
     }
 
-    // 画面上の暗号文表示（斜線なし・連続文字列）を更新
+    // 画面上の暗号文表示（熟語ごとにスペース区切り）
     function updateDisplay() {
       const state = getInputsState();
       if (!state) {
@@ -303,12 +357,16 @@
         return;
       }
 
-      // STEP2の全熟語の読みを結合して一括暗号化
-      const fullReading = state.words.map(word => KANJI_READING_MAP[word] || word).join('');
-      cipherDisplay.innerText = encryptText(fullReading, state.digits);
+      const encryptedWords = state.words.map(word => {
+        const reading = KANJI_READING_MAP[word] || word;
+        return encryptText(reading, state.digits);
+      });
+
+      // 半角スペースで区切って表示
+      cipherDisplay.innerText = encryptedWords.join(' ');
     }
 
-    // 判定（送信）処理
+    // 判定処理
     const form = document.getElementById('puzzleForm');
     const resultDiv = document.getElementById('result');
 
@@ -326,7 +384,6 @@
         return;
       }
 
-      // 正解文字列（「かいじょう」を同じルールで暗号化した結果）を動的に計算
       const correctAnswer = encryptText('かいじょう', state.digits);
       const userInputValue = answerInput.value.trim();
 
