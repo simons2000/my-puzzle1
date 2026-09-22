@@ -4,308 +4,115 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>暗号パズル</title>
+  <!-- スタイリッシュなダークモード用のフォントとTailwind CSSを読み込み -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #f9fafb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+  </style>
 </head>
-<body class="bg-slate-100 min-h-screen py-10 px-4 text-slate-800">
+<body class="min-h-screen flex items-center justify-center p-4">
 
-  <div class="max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-none shadow-lg border border-slate-200">
-    <h1 class="text-2xl sm:text-3xl font-extrabold text-center text-slate-800 mb-8 tracking-wide">
-      🧩 謎解き暗号パズル
-    </h1>
+  <main class="w-full max-w-md bg-[#111827] rounded-2xl p-6 shadow-2xl border border-gray-800 space-y-6">
+    <!-- タイトル -->
+    <header class="text-center space-y-1">
+      <h1 class="text-xl font-bold tracking-widest text-amber-500 uppercase">Cipher Puzzle</h1>
+      <p class="text-xs text-gray-400">画数から熟語を導き出せ</p>
+    </header>
 
-    <!-- STEP 1 -->
-    <section class="mb-8 p-5 sm:p-6 bg-slate-50 rounded-none border border-slate-300">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-base sm:text-lg font-bold text-slate-700 flex items-center gap-2">
-          <span class="w-6 h-6 rounded-none bg-blue-600 text-white text-xs flex items-center justify-center font-extrabold">1</span>
-          STEP 1: 数式を完成させよ
-        </h2>
-        <span id="step1-mark" class="text-2xl">⬜</span>
+    <!-- STEP 1 & STEP 2 入力エリア -->
+    <form id="puzzleForm" class="space-y-6">
+      <!-- 目標画数ヒント -->
+      <div class="space-y-2">
+        <label class="block text-xs font-semibold text-gray-400 tracking-wider">TARGET STROKES (9桁)</label>
+        <input 
+          type="text" 
+          id="targetDigits" 
+          placeholder="例: 123456789" 
+          maxlength="9"
+          required
+          class="w-full bg-[#1f2937] text-amber-400 font-mono text-center text-lg tracking-widest py-3 px-4 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600"
+        >
       </div>
-      <p class="text-xs sm:text-sm text-slate-500 mb-5">足し算の左辺に数字を入れると、右辺が自動的に計算されます。</p>
-      
-      <div class="flex flex-wrap items-center justify-center gap-1 sm:gap-2 text-xl font-bold">
-        <div class="flex shadow-sm">
-          <input type="text" maxlength="1" class="step1-left-in w-9 h-11 text-center border border-slate-400 rounded-none bg-white focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
-          <input type="text" maxlength="1" class="step1-left-in w-9 h-11 text-center border-t border-b border-r border-slate-400 rounded-none bg-white focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
-        </div>
-        <span class="text-slate-400 font-normal px-1">+</span>
-        <div class="flex shadow-sm">
-          <input type="text" maxlength="1" class="step1-left-in w-9 h-11 text-center border border-slate-400 rounded-none bg-white focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
-          <input type="text" maxlength="1" class="step1-left-in w-9 h-11 text-center border-t border-b border-r border-slate-400 rounded-none bg-white focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
-        </div>
-        <span class="text-slate-400 font-normal px-1">+</span>
-        <div class="flex shadow-sm">
-          <input type="text" maxlength="1" class="step1-left-in w-9 h-11 text-center border border-slate-400 rounded-none bg-white focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
-          <input type="text" maxlength="1" class="step1-left-in w-9 h-11 text-center border-t border-b border-r border-slate-400 rounded-none bg-white focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
-        </div>
-        <span class="text-slate-400 font-normal px-1">=</span>
-        <div class="flex shadow-sm opacity-80">
-          <input type="text" maxlength="1" readonly class="step1-right-in w-9 h-11 text-center border border-slate-400 rounded-none bg-slate-200 font-mono text-slate-600 select-none cursor-not-allowed">
-          <input type="text" maxlength="1" readonly class="step1-right-in w-9 h-11 text-center border-t border-b border-slate-400 bg-slate-200 font-mono text-slate-600 select-none cursor-not-allowed">
-          <input type="text" maxlength="1" readonly class="step1-right-in w-9 h-11 text-center border border-slate-400 rounded-none bg-slate-200 font-mono text-slate-600 select-none cursor-not-allowed">
-        </div>
-      </div>
-    </section>
 
-    <!-- STEP 2 -->
-    <section id="step2-container" class="mb-8 p-5 sm:p-6 bg-slate-50 rounded-none border border-slate-300 opacity-40 pointer-events-none transition-all duration-300">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-base sm:text-lg font-bold text-slate-700 flex items-center gap-2">
-          <span class="w-6 h-6 rounded-none bg-blue-600 text-white text-xs flex items-center justify-center font-extrabold">2</span>
-          STEP 2: 指定の画数に従って熟語を入力せよ
-        </h2>
-        <span id="step2-mark" class="text-2xl">⬜</span>
-      </div>
-      <p class="text-xs sm:text-sm text-slate-500 mb-5">各文字の画数がSTEP 1の数字（全9桁）と一致する熟語を入力してください。</p>
-
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-        <!-- 熟語 1 -->
-        <div class="flex flex-col items-center bg-white p-3 border border-slate-300 rounded-none shadow-sm">
-          <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-none mb-2 border border-blue-200">2字熟語</span>
-          <input type="text" maxlength="2" class="step2-word-in w-full h-11 text-center border border-slate-400 rounded-none bg-white text-lg font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="漢字2文字">
-          <div class="text-[11px] text-slate-500 mt-2 font-mono flex gap-1">
-            <span class="stroke-hint">-画</span>・<span class="stroke-hint">-画</span>
-          </div>
-        </div>
-
-        <!-- 熟語 2 -->
-        <div class="flex flex-col items-center bg-white p-3 border border-slate-300 rounded-none shadow-sm">
-          <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-none mb-2 border border-blue-200">2字熟語</span>
-          <input type="text" maxlength="2" class="step2-word-in w-full h-11 text-center border border-slate-400 rounded-none bg-white text-lg font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="漢字2文字">
-          <div class="text-[11px] text-slate-500 mt-2 font-mono flex gap-1">
-            <span class="stroke-hint">-画</span>・<span class="stroke-hint">-画</span>
-          </div>
-        </div>
-
-        <!-- 熟語 3 -->
-        <div class="flex flex-col items-center bg-white p-3 border border-slate-300 rounded-none shadow-sm">
-          <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-none mb-2 border border-blue-200">2字熟語</span>
-          <input type="text" maxlength="2" class="step2-word-in w-full h-11 text-center border border-slate-400 rounded-none bg-white text-lg font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="漢字2文字">
-          <div class="text-[11px] text-slate-500 mt-2 font-mono flex gap-1">
-            <span class="stroke-hint">-画</span>・<span class="stroke-hint">-画</span>
-          </div>
-        </div>
-
-        <!-- 熟語 4 -->
-        <div class="flex flex-col items-center bg-white p-3 border border-slate-300 rounded-none shadow-sm">
-          <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-none mb-2 border border-emerald-200">3字熟語</span>
-          <input type="text" maxlength="3" class="step2-word-in w-full h-11 text-center border border-slate-400 rounded-none bg-white text-lg font-bold focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="漢字3文字">
-          <div class="text-[11px] text-slate-500 mt-2 font-mono flex gap-1">
-            <span class="stroke-hint">-画</span>・<span class="stroke-hint">-画</span>・<span class="stroke-hint">-画</span>
-          </div>
+      <!-- 4つの熟語入力 -->
+      <div class="space-y-3">
+        <label class="block text-xs font-semibold text-gray-400 tracking-wider">WORDS (4つの熟語 / 計9文字)</label>
+        <div class="grid grid-cols-2 gap-3">
+          <input type="text" id="word1" placeholder="1つ目" required class="bg-[#1f2937] text-white text-center py-2.5 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600">
+          <input type="text" id="word2" placeholder="2つ目" required class="bg-[#1f2937] text-white text-center py-2.5 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600">
+          <input type="text" id="word3" placeholder="3つ目" required class="bg-[#1f2937] text-white text-center py-2.5 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600">
+          <input type="text" id="word4" placeholder="4つ目" required class="bg-[#1f2937] text-white text-center py-2.5 rounded-xl border border-gray-700 focus:outline-none focus:border-amber-500 transition-all placeholder-gray-600">
         </div>
       </div>
 
-      <div id="step2-msg" class="text-xs sm:text-sm text-red-500 font-medium text-center min-h-[1.25rem]"></div>
-    </section>
+      <!-- 送信ボタン -->
+      <button 
+        type="submit" 
+        id="submitBtn"
+        class="w-full bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold py-3 rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-amber-500/10"
+      >
+        判定する
+      </button>
+    </form>
 
-    <!-- STEP 3 -->
-    <section id="step3-container" class="p-5 sm:p-6 bg-slate-50 rounded-none border border-slate-300 opacity-40 pointer-events-none transition-all duration-300">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-base sm:text-lg font-bold text-slate-700 flex items-center gap-2">
-          <span class="w-6 h-6 rounded-none bg-blue-600 text-white text-xs flex items-center justify-center font-extrabold">3</span>
-          STEP 3: 法則を解読して暗号を解け
-        </h2>
-        <span id="step3-mark" class="text-2xl">⬜</span>
-      </div>
-      
-      <div class="bg-white p-4 rounded-none border border-slate-300 mb-5 text-sm text-slate-700 leading-relaxed shadow-sm">
-        <p class="font-bold text-xs text-slate-400 uppercase tracking-wider mb-2">【解読ヒント（分かち書き）】</p>
-        <p class="mb-1">元の読み：<span id="plain-hint" class="font-mono text-slate-600 font-bold">（STEP 2クリアで表示）</span></p>
-        <p>暗号変換：<span id="cipher-output" class="font-mono text-blue-600 font-bold">（STEP 2クリアで表示）</span></p>
-      </div>
-
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-        <label for="final-answer" class="text-sm font-bold text-slate-700">「こたえ」を変換せよ：</label>
-        <input type="text" id="final-answer" class="border border-slate-400 rounded-none px-4 py-2 text-center font-bold text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm" placeholder="変換した文字列">
-        <button id="submit-btn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold px-6 py-2.5 rounded-none shadow-md transition-all">送信</button>
-      </div>
-    </section>
-  </div>
+    <!-- 結果表示エリア -->
+    <div id="result" class="hidden rounded-xl p-4 text-center text-sm font-medium transition-all"></div>
+  </main>
 
   <script>
-    const cipherMap = {
-      'あ':'い','い':'う','う':'え','え':'お','お':'か','か':'き','き':'く','く':'け','け':'こ','こ':'さ',
-      'さ':'し','し':'す','す':'せ','せ':'そ','そ':'た','た':'ち','ち':'つ','つ':'て','て':'と','と':'な',
-      'な':'に','に':'ぬ','ぬ':'ね','ね':'の','の':'は','は':'ひ','ひ':'ふ','ふ':'へ','へ':'ほ','ほ':'ま',
-      'ま':'み','み':'む','む':'め','め':'も','も':'や','や':'ゆ','ゆ':'よ','よ':'ら','ら':'り','り':'る',
-      'る':'れ','れ':'ろ','ろ':'わ','わ':'を','を':'ん','ん':'あ',
-      'が':'ぎ','ぎ':'ぐ','ぐ':'げ','げ':'ご','ご':'ざ','ざ':'じ','じ':'ず','ず':'ぜ','ぜ':'ぞ','ぞ':'だ',
-      'だ':'ぢ','ぢ':'づ','づ':'で','で':'ど','ど':'ば','ば':'び','び':'ぶ','ぶ':'べ','べ':'ぼ','ぼ':'ぱ',
-      'ぱ':'ぴ','ぴ':'ぷ','ぷ':'ぺ','ぺ':'ぽ','ぽ':'が',
-      'っ':'っ','ー':'ー'
-    };
+    const form = document.getElementById('puzzleForm');
+    const resultDiv = document.getElementById('result');
+    const submitBtn = document.getElementById('submitBtn');
 
-    let wordReadings = [];
-
-    const s1LeftInputs  = Array.from(document.querySelectorAll('.step1-left-in'));
-    const s1RightInputs = Array.from(document.querySelectorAll('.step1-right-in'));
-
-    s1LeftInputs.forEach((input, index) => {
-      input.addEventListener('input', () => {
-        if (input.value.length === 1 && index < s1LeftInputs.length - 1) {
-          s1LeftInputs[index + 1].focus();
-        }
-        checkStep1();
-      });
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Backspace' && input.value === '' && index > 0) {
-          s1LeftInputs[index - 1].focus();
-        }
-      });
-    });
-
-    function checkStep1() {
-      const vals = s1LeftInputs.map(i => i.value.trim());
-
-      if (vals.some(v => v === "" || isNaN(v))) {
-        s1RightInputs.forEach(i => i.value = "");
-        document.getElementById('step1-mark').innerText = "⬜";
-        updateStrokeHints([]);
-        lockStep2();
-        return;
-      }
-
-      const num1 = parseInt(vals[0] + vals[1], 10);
-      const num2 = parseInt(vals[2] + vals[3], 10);
-      const num3 = parseInt(vals[4] + vals[5], 10);
-      const sum  = num1 + num2 + num3;
-
-      const sumStr = sum.toString().padStart(3, '0');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
       
-      s1RightInputs[0].value = sumStr[0];
-      s1RightInputs[1].value = sumStr[1];
-      s1RightInputs[2].value = sumStr[2];
+      // UIの初期化
+      resultDiv.classList.add('hidden');
+      resultDiv.className = 'hidden rounded-xl p-4 text-center text-sm font-medium transition-all';
+      submitBtn.disabled = true;
+      submitBtn.innerText = '検証中...';
 
-      const allNineDigits = [...vals, sumStr[0], sumStr[1], sumStr[2]];
-      updateStrokeHints(allNineDigits);
+      const targetDigits = document.getElementById('targetDigits').value.trim();
+      const words = [
+        document.getElementById('word1').value.trim(),
+        document.getElementById('word2').value.trim(),
+        document.getElementById('word3').value.trim(),
+        document.getElementById('word4').value.trim()
+      ];
 
-      document.getElementById('step1-mark').innerText = "✅";
-      unlockStep2();
-      checkStep2();
-    }
+      try {
+        const response = await fetch('/api/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetDigits, words })
+        });
 
-    function updateStrokeHints(digits) {
-      const strokeHints = document.querySelectorAll('.stroke-hint');
-      strokeHints.forEach((hint, idx) => {
-        hint.innerText = digits[idx] ? `${digits[idx]}画` : '-画';
-      });
-    }
+        const data = await response.json();
 
-    function unlockStep2() {
-      document.getElementById('step2-container').classList.remove('opacity-40', 'pointer-events-none');
-    }
+        resultDiv.classList.remove('hidden');
 
-    function lockStep2() {
-      document.getElementById('step2-container').classList.add('opacity-40', 'pointer-events-none');
-      document.getElementById('step2-mark').innerText = "⬜";
-      lockStep3();
-    }
-
-    const s2Inputs = Array.from(document.querySelectorAll('.step2-word-in'));
-    s2Inputs.forEach(input => input.addEventListener('input', checkStep2));
-
-    let checkTimeout = null;
-
-    function checkStep2() {
-      const words = s2Inputs.map(i => i.value.trim());
-      const msgEl = document.getElementById('step2-msg');
-      msgEl.innerText = "";
-
-      if (words.some(w => w === "")) {
-        document.getElementById('step2-mark').innerText = "⬜";
-        lockStep3();
-        return;
-      }
-
-      if (words[0].length !== 2 || words[1].length !== 2 || words[2].length !== 2 || words[3].length !== 3) {
-        msgEl.innerText = "指定の文字数（2字／3字）を入力してください";
-        document.getElementById('step2-mark').innerText = "⬜";
-        lockStep3();
-        return;
-      }
-
-      const targetDigits = [...s1LeftInputs.map(i => i.value.trim()), ...s1RightInputs.map(i => i.value.trim())];
-      if (targetDigits.some(d => d === "" || isNaN(d))) {
-        document.getElementById('step2-mark').innerText = "⬜";
-        lockStep3();
-        return;
-      }
-
-      msgEl.innerText = "判定中...";
-
-      clearTimeout(checkTimeout);
-      checkTimeout = setTimeout(async () => {
-        try {
-          const response = await fetch('/api/check', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ words, targetDigits })
-          });
-
-          const data = await response.json();
-
-          if (!response.ok || !data.success) {
-            msgEl.innerText = data.error || "不正な漢字または画数が一致しません";
-            document.getElementById('step2-mark').innerText = "⬜";
-            lockStep3();
-            return;
-          }
-
-          msgEl.innerText = "";
-          wordReadings = data.readings;
-          document.getElementById('step2-mark').innerText = "✅";
-          unlockStep3();
-
-        } catch (err) {
-          msgEl.innerText = "通信エラーが発生しました。Vercelサーバーを確認してください。";
-          document.getElementById('step2-mark').innerText = "⬜";
-          lockStep3();
+        if (data.success) {
+          resultDiv.classList.add('bg-emerald-950/80', 'text-emerald-400', 'border', 'border-emerald-800');
+          resultDiv.innerHTML = `
+            <p class="font-bold text-base mb-1">🎉 CLEAR!</p>
+            <p>読み: ${data.readings.join(' / ')}</p>
+          `;
+        } else {
+          resultDiv.classList.add('bg-rose-950/80', 'text-rose-400', 'border', 'border-rose-800');
+          resultDiv.innerText = data.error || 'エラーが発生しました。';
         }
-      }, 400);
-    }
-
-    function unlockStep3() {
-      document.getElementById('step3-container').classList.remove('opacity-40', 'pointer-events-none');
-
-      // 分かち書き（スペース区切り）で元の読みと暗号文を生成
-      const plainSpaced = wordReadings.join(' ');
-      const cipherSpaced = wordReadings.map(word => {
-        let cipherWord = "";
-        for (let char of word) {
-          cipherWord += cipherMap[char] || char;
-        }
-        return cipherWord;
-      }).join(' ');
-
-      document.getElementById('plain-hint').innerText = plainSpaced;
-      document.getElementById('cipher-output').innerText = cipherSpaced;
-    }
-
-    function lockStep3() {
-      document.getElementById('step3-container').classList.add('opacity-40', 'pointer-events-none');
-      document.getElementById('step3-mark').innerText = "⬜";
-      document.getElementById('plain-hint').innerText = "（STEP 2クリアで表示）";
-      document.getElementById('cipher-output').innerText = "（STEP 2クリアで表示）";
-    }
-
-    document.getElementById('submit-btn').addEventListener('click', () => {
-      const userAns = document.getElementById('final-answer').value.trim();
-      const targetWord = "こたえ";
-      let expectedAnswer = "";
-      for (let char of targetWord) {
-        expectedAnswer += cipherMap[char] || char;
-      }
-
-      if (userAns !== "" && userAns === expectedAnswer) {
-        if (typeof confetti === 'function') {
-          confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
-        }
-        alert("🎉 CLEAR！謎解き暗号パズルクリアです！");
-      } else {
-        alert("❌ 「こたえ」の暗号文が違います。ヒントからルールを推測して変換してください。");
+      } catch (err) {
+        resultDiv.classList.remove('hidden');
+        resultDiv.classList.add('bg-rose-950/80', 'text-rose-400', 'border', 'border-rose-800');
+        resultDiv.innerText = '通信エラーが発生しました。';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = '判定する';
       }
     });
   </script>
