@@ -95,18 +95,18 @@
 </head>
 <body class="min-h-screen py-8 px-2 sm:px-4 flex flex-col items-center justify-center">
 
-  <main class="w-full max-w-xl space-y-8 border border-green-500/30 p-5 sm:p-8 rounded-lg bg-black relative">
+  <main class="w-full max-w-xl space-y-6 border border-green-500/30 p-5 sm:p-8 rounded-lg bg-black relative">
     
     <!-- タイトル -->
     <header class="text-center border-b border-green-500/30 pb-4">
       <h1 class="text-3xl font-extrabold tracking-widest text-green-400">解錠せよ</h1>
     </header>
 
-    <div id="puzzleForm" class="space-y-8">
+    <div id="puzzleForm" class="space-y-5">
 
-      <!-- STEP 1 (常に表示) -->
-      <section class="space-y-4">
-        <div class="w-full max-w-md mx-auto flex items-center justify-between text-green-400 font-extrabold font-mono text-base sm:text-2xl py-2 min-w-0">
+      <!-- STEP 1 (常に表示 / 上下の線なし) -->
+      <section>
+        <div class="w-full max-w-md mx-auto flex items-center justify-between text-green-400 font-extrabold font-mono text-base sm:text-2xl py-1 min-w-0">
           <!-- 語1 (2桁) -->
           <div class="flex gap-1">
             <input type="text" id="d0" maxlength="1" class="square-input w-6 h-8 sm:w-9 sm:h-11 text-base sm:text-xl rounded border-2 border-green-400" required>
@@ -140,8 +140,8 @@
         </div>
       </section>
 
-      <!-- STEP 2 (STEP1クリアまで非表示) -->
-      <section id="step2Section" class="hidden space-y-4 pt-4 border-t border-green-500/20 fade-in">
+      <!-- STEP 2 (STEP1クリアまで非表示 / 上部の横線を削除) -->
+      <section id="step2Section" class="hidden fade-in">
         <!-- 4つの熟語全体を囲む角丸枠 -->
         <div class="bg-gray-950 border border-green-500/30 p-4 rounded">
           <div class="w-full max-w-md mx-auto flex items-center justify-between py-1 min-w-0">
@@ -153,22 +153,22 @@
         </div>
       </section>
 
-      <!-- STEP2 と STEP3 の間の下矢印 (少し小さく調整) -->
-      <div id="arrowDivider" class="hidden text-center py-1 fade-in">
-        <svg class="outline-arrow-svg w-9 h-8 sm:w-11 sm:h-9" viewBox="0 0 60 45">
+      <!-- STEP2 と STEP3 の間の下矢印 (余白を詰めて配置) -->
+      <div id="arrowDivider" class="hidden text-center -my-2 fade-in">
+        <svg class="outline-arrow-svg w-8 h-7 sm:w-10 sm:h-8" viewBox="0 0 60 45">
           <polygon points="18,0 42,0 42,22 55,22 30,43 5,22 18,22" />
         </svg>
       </div>
 
-      <!-- STEP 3 (STEP2クリア判定開始で表示) -->
-      <section id="step3Section" class="hidden space-y-4 fade-in">
+      <!-- STEP 3 (STEP2クリア判定開始で表示 / STEP2との間隔を短縮) -->
+      <section id="step3Section" class="hidden space-y-3 fade-in">
         <!-- 暗号文表示エリア -->
         <div class="bg-gray-950 border border-green-500/30 p-4 rounded text-center">
           <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-green-300 tracking-wider min-h-[28px] flex items-center justify-center"></div>
         </div>
 
-        <!-- 解錠 ⇨ 入力欄 (右矢印も少し小さく調整) -->
-        <div class="flex items-center justify-center gap-3 pt-2">
+        <!-- 解錠 ⇨ 入力欄 -->
+        <div class="flex items-center justify-center gap-3 pt-1">
           <span class="text-2xl sm:text-3xl font-extrabold text-green-400">解錠</span>
           <svg class="outline-arrow-svg w-8 h-6 sm:w-10 sm:h-8" viewBox="0 0 50 36">
             <polygon points="0,10 28,10 28,2 48,18 28,34 28,26 0,26" />
