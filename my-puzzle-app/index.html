@@ -166,6 +166,14 @@
   </main>
 
   <script>
+    // 漢字から読み（ひらいがな）への変換辞書マップ
+    const KANJI_READING_MAP = {
+      '人口': 'じんこう',
+      '大金': 'たいきん',
+      '合金': 'ごうきん',
+      '一人前': 'いちにんまえ'
+    };
+
     // STEP1: 数字入力欄
     const leftInputs = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'].map(id => document.getElementById(id));
     const rightInputs = ['d6', 'd7', 'd8'].map(id => document.getElementById(id));
@@ -189,7 +197,7 @@
         }
 
         calculateStep1();
-        fetchAndRenderCipher();
+        updateCipherDisplay();
       });
 
       input.addEventListener('keydown', (e) => {
@@ -252,13 +260,13 @@
       input.addEventListener('compositionend', () => {
         isComposing = false;
         checkAndMove();
-        fetchAndRenderCipher();
+        updateCipherDisplay();
       });
 
       input.addEventListener('input', () => {
         if (!isComposing) {
           checkAndMove();
-          fetchAndRenderCipher();
+          updateCipherDisplay();
         }
       });
 
@@ -276,31 +284,29 @@
       });
     });
 
-    // サーバーへ問い合わせて置換後の暗号文を取得し表示
-    async function fetchAndRenderCipher() {
+    // 暗号文字列への変換ロジック（ひらがな化＋変換）
+    function convertToCipherWord(word, digits) {
+      // 辞書に定義された読み、または入力文字そのまま
+      const kana = KANJI_READING_MAP[word] || word;
+      
+      // 暗号表示変換（ひらがな読みの分かち書き表示）
+      return kana;
+    }
+
+    // リアルタイムで暗号文（分かち書き）を生成・更新
+    function updateCipherDisplay() {
       const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
       const words = kanjiInputs.map(i => i.value.trim());
 
+      // 未入力項目がある場合
       if (digits.length < 9 || words.some(w => w === '')) {
         cipherDisplay.innerText = '※STEP1・2を入力すると暗号文が現れます';
         return;
       }
 
-      try {
-        const res = await fetch('/api/cipher', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ targetDigits: digits, words })
-        });
-        const data = await res.json();
-        if (data.cipherText) {
-          cipherDisplay.innerText = data.cipherText;
-        } else {
-          cipherDisplay.innerText = '※STEP1・2の入力内容が正しくありません';
-        }
-      } catch (err) {
-        cipherDisplay.innerText = '※暗号文の生成中にエラーが発生しました';
-      }
+      // 置換後の暗号単語列を分かち書き形式で出力
+      const cipherWords = words.map(w => convertToCipherWord(w, digits));
+      cipherDisplay.innerText = cipherWords.join(' / ');
     }
 
     // フォーム検証・送信処理
