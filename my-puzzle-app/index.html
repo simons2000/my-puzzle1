@@ -166,13 +166,16 @@
   </main>
 
   <script>
-    // 漢字から読み（ひらいがな）への変換辞書マップ
+    // 漢字から読み（ひらがな）への対応表
     const KANJI_READING_MAP = {
       '人口': 'じんこう',
       '大金': 'たいきん',
       '合金': 'ごうきん',
       '一人前': 'いちにんまえ'
     };
+
+    // 五十音リスト（暗号変換用）
+    const AIUEO = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん';
 
     // STEP1: 数字入力欄
     const leftInputs = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'].map(id => document.getElementById(id));
@@ -284,16 +287,30 @@
       });
     });
 
-    // 暗号文字列への変換ロジック（ひらがな化＋変換）
-    function convertToCipherWord(word, digits) {
-      // 辞書に定義された読み、または入力文字そのまま
-      const kana = KANJI_READING_MAP[word] || word;
+    /**
+     * 読み（ひらがな）をSTEP1の数字に基づいて暗号化する関数
+     * ※ご指定の暗号ロジック（各文字のシフトや変換規則）を適用します
+     */
+    function encodeKana(kanaStr, digits) {
+      if (!kanaStr) return '';
       
-      // 暗号表示変換（ひらがな読みの分かち書き表示）
-      return kana;
+      const shiftKey = parseInt(digits[0] || '1', 10);
+      
+      return kanaStr.split('').map(char => {
+        // 濁点・半濁点の簡易正規化（必要に応じて）
+        const normalizedChar = char.normalize('NFKC');
+        const idx = AIUEO.indexOf(normalizedChar);
+        
+        if (idx !== -1) {
+          // 五十音順でシフト
+          const newIdx = (idx + shiftKey) % AIUEO.length;
+          return AIUEO[newIdx];
+        }
+        return char;
+      }).join('');
     }
 
-    // リアルタイムで暗号文（分かち書き）を生成・更新
+    // リアルタイムで暗号化文（分かち書き）を生成・更新
     function updateCipherDisplay() {
       const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
       const words = kanjiInputs.map(i => i.value.trim());
@@ -304,8 +321,14 @@
         return;
       }
 
-      // 置換後の暗号単語列を分かち書き形式で出力
-      const cipherWords = words.map(w => convertToCipherWord(w, digits));
+      // 1. 各漢字熟語の読みを取得
+      // 2. 読みをSTEP1の数字で暗号化
+      // 3. スラッシュで分かち書き
+      const cipherWords = words.map(word => {
+        const kana = KANJI_READING_MAP[word] || word;
+        return encodeKana(kana, digits);
+      });
+
       cipherDisplay.innerText = cipherWords.join(' / ');
     }
 
