@@ -1,3 +1,23 @@
+import kuromoji from 'kuromoji';
+import path from 'path';
+
+// kuromoji の辞書インスタンスをキャッシュ（コールドスタート対策）
+let tokenizerPromise = null;
+
+function getTokenizer() {
+  if (!tokenizerPromise) {
+    tokenizerPromise = new Promise((resolve, reject) => {
+      // kuromoji の辞書ファイルのパスを指定
+      const dicPath = path.join(process.cwd(), 'node_modules', 'kuromoji', 'dict');
+      kuromoji.builder({ dicPath }).build((err, tokenizer) => {
+        if (err) reject(err);
+        else resolve(tokenizer);
+      });
+    });
+  }
+  return tokenizerPromise;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -15,7 +35,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: '文字数の合計が9文字になりません。' });
     }
 
-    // 1. 各漢字の画数チェック (kanjiapi.dev)
+    // 1. 漢字1文字ずつの画数判定 (kanjiapi.dev)
     for (let i = 0; i < 9; i++) {
       const char = allKanji[i];
       const expectedStroke = parseInt(targetDigits[i], 10);
@@ -29,91 +49,48 @@ export default async function handler(req, res) {
       }
 
       const kanjiData = await kanjiRes.json();
-      const actualStroke = kanjiData.stroke_count;
-
-      if (actualStroke !== expectedStroke) {
+      if (kanjiData.stroke_count !== expectedStroke) {
         return res.status(200).json({
           success: false,
-          error: `「${char}」の画数は ${actualStroke}画 です（要求: ${expectedStroke}画）。`
+          error: `「${char}」の画数は ${kanjiData.stroke_count}画 です（要求: ${expectedStroke}画）。`
         });
       }
     }
 
-    // 2. 熟語全体の読み（ひらがな）を gooラボ API または Yahoo API で辞書検索
+    // 2. kuromoji による形態素解析・熟語実在チェックおよび読み取得
+    const tokenizer = await getTokenizer();
     const readings = [];
-    const clientID = process.env.YAHOO_CLIENT_ID;
 
     for (const word of words) {
-      let wordReading = "";
+      const tokens = tokenizer.tokenize(word);
 
-      // 【方法A】 Yahoo JLP API が設定されている場合
-      if (clientID) {
-        try {
-          const yahooRes = await fetch('https://jlp.yahooapis.jp/MAService/V2/parse', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'User-Agent': `Yahoo AppID: ${clientID}`
-            },
-            body: JSON.stringify({
-              id: '1',
-              jsonrpc: '2.0',
-              method: 'jlp.maservice.parse',
-              params: { q: word }
-            })
-          });
+      // ① 辞書に存在する「1つの単語（名詞）」として認識されているか判定
+      // 「一人風」のように未知語や複数単語に分解されるものは不正とみなす
+      const isValidSingleWord = tokens.length === 1 && 
+        (tokens[0].pos === '名詞' || tokens[0].pos_detail_1 === '数接続');
 
-          if (yahooRes.ok) {
-            const yahooData = await yahooRes.json();
-            const tokens = yahooData?.result?.tokens || [];
-            if (tokens.length >= 1) {
-              const katakanaReading = tokens.map(t => t[1] || "").join('');
-              wordReading = katakanaReading.replace(/[\u30a1-\u30f6]/g, m => 
-                String.fromCharCode(m.charCodeAt(0) - 0x60)
-              );
-            }
-          }
-        } catch (e) {}
+      if (!isValidSingleWord) {
+        return res.status(200).json({
+          success: false,
+          error: `「${word}」は辞書に実在する熟語として登録されていません。`
+        });
       }
 
-      // 【方法B】 登録なしで使えるオープンな辞書変換（Wikipedia/goo等互換のエンドポイント）
-      if (!wordReading) {
-        try {
-          // 例：gooラボひらがな化API (APIキー不要な公開エンドポイントまたは代替形態素解析)
-          const hiraganaRes = await fetch(`https://labs.goo.ne.jp/api/hiragana`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              app_id: process.env.GOO_APP_ID || "DEMO_APP_ID",
-              sentence: word,
-              output_type: "hiragana"
-            })
-          });
-
-          if (hiraganaRes.ok) {
-            const gData = await hiraganaRes.json();
-            if (gData.converted) {
-              wordReading = gData.converted.replace(/\s+/g, '');
-            }
-          }
-        } catch (e) {}
+      // ② 辞書から標準的な読み（カタカナ）を取得し、ひらがなに変換
+      const katakanaReading = tokens[0].reading;
+      if (!katakanaReading || katakanaReading === '*') {
+        return res.status(200).json({
+          success: false,
+          error: `「${word}」の読みが取得できませんでした。`
+        });
       }
 
-      // 【最終フォールバック】辞書APIが未設定の場合の標準辞書マッピング表
-      if (!wordReading) {
-        const commonDictionary = {
-          "人口": "じんこう",
-          "大金": "たいきん",
-          "合金": "ごうきん",
-          "一人前": "いちにんまえ",
-          "七人組": "しちにんぐみ",
-          "大人": "おとな",
-          "今日": "きょう"
-        };
-        wordReading = commonDictionary[word] || word; // 登録がない場合はそのまま文字を表示
-      }
+      // カタカナをひらがなに変換
+      const hiraganaReading = katakanaReading.replace(/[\u30a1-\u30f6]/g, m =>
+        String.fromCharCode(m.charCodeAt(0) - 0x60)
+      );
 
-      readings.push(wordReading);
+      readings.push(hiraganaReading);
     }
 
     return res.status(200).json({
@@ -122,6 +99,7 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
-    return res.status(500).json({ error: 'サーバー判定処理でエラーが発生しました。' });
+    console.error('API Error:', err);
+    return res.status(500).json({ error: '形態素解析の実行中にエラーが発生しました。' });
   }
 }
