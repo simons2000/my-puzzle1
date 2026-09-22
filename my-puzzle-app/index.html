@@ -72,13 +72,15 @@
       50% { opacity: 0.3; }
     }
 
-    /* 枠線矢印（太め・塗りつぶしなし）共通デザイン */
-    .outline-arrow {
-      color: transparent;
-      -webkit-text-stroke: 3.5px #4ade80;
-      font-weight: 900;
+    /* SVG矢印の共通スタイル（太い幹・短い形状・緑の枠線・中抜き） */
+    .outline-arrow-svg {
+      fill: #000000;
+      stroke: #4ade80;
+      stroke-width: 4;
+      stroke-linejoin: round;
+      stroke-linecap: round;
       display: inline-block;
-      line-height: 1;
+      vertical-align: middle;
     }
 
     /* クリアポップアップのアニメーション */
@@ -152,25 +154,30 @@
         </div>
       </section>
 
-      <!-- STEP2 と STEP3 の間の下矢印 (太枠線のみ・特大) -->
-      <div id="arrowDivider" class="hidden text-center py-2 fade-in">
-        <span class="outline-arrow text-5xl sm:text-6xl">⇩</span>
+      <!-- STEP2 と STEP3 の間の下矢印 (幹幅が太く短いSVG矢印) -->
+      <div id="arrowDivider" class="hidden text-center py-1 fade-in">
+        <svg class="outline-arrow-svg w-12 h-10 sm:w-16 sm:h-12" viewBox="0 0 60 45">
+          <!-- 幹幅を広く（x: 18〜42）、長さを短く（全高45px）定義 -->
+          <polygon points="18,0 42,0 42,22 55,22 30,43 5,22 18,22" />
+        </svg>
       </div>
 
       <!-- STEP 3 (STEP2クリア判定開始で表示) -->
       <section id="step3Section" class="hidden space-y-4 fade-in">
         <h2 class="text-base sm:text-lg font-bold text-green-400">STEP3 暗号文を解読し、解錠せよ</h2>
 
-        <!-- 暗号文表示エリア -->
-        <div class="bg-gray-950 border border-green-500/30 p-4 rounded text-center space-y-2">
-          <p class="text-xs text-green-500/70">【 暗号文 】</p>
+        <!-- 暗号文表示エリア ([暗号文] 表記を削除) -->
+        <div class="bg-gray-950 border border-green-500/30 p-4 rounded text-center">
           <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-green-300 tracking-wider min-h-[28px] flex items-center justify-center"></div>
         </div>
 
-        <!-- 解錠 ⇨ 入力欄 (太枠線のみ・特大の右矢印) -->
+        <!-- 解錠 ⇨ 入力欄 (幹幅が太い右向きSVG矢印) -->
         <div class="flex items-center justify-center gap-3 pt-2">
           <span class="text-xl sm:text-2xl font-extrabold text-green-400">解錠</span>
-          <span class="outline-arrow text-4xl sm:text-5xl">⇨</span>
+          <svg class="outline-arrow-svg w-10 h-8 sm:w-14 sm:h-10" viewBox="0 0 50 36">
+            <!-- 幹幅を広く（y: 10〜26）、長さを調整して定義 -->
+            <polygon points="0,10 28,10 28,2 48,18 28,34 28,26 0,26" />
+          </svg>
           <input 
             type="text" 
             id="answerInput" 
@@ -376,7 +383,6 @@
       }
 
       showStep3();
-      // 他のテキスト（text-green-300）と同じ色指定にしつつ点滅
       cipherDisplay.innerText = 'generating...';
       cipherDisplay.className = 'text-base sm:text-lg font-mono text-green-300 tracking-wider min-h-[28px] flex items-center justify-center pulse-loading';
 
@@ -405,7 +411,6 @@
           cipherDisplay.className = 'text-base sm:text-lg font-mono text-green-300 tracking-wider min-h-[28px] flex items-center justify-center';
           cipherDisplay.innerText = encryptedWords.join(' ');
           
-          // 再生成された場合などに既に入力されている文字を自動判定
           checkAnswer();
         } else {
           hideStep3();
@@ -425,7 +430,6 @@
       
       const userInput = answerInput.value.trim();
       if (userInput === expectedAnswer) {
-        // クリア演出モーダルを表示
         clearModal.classList.remove('hidden');
       }
     }
