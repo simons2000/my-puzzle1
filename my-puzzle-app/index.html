@@ -31,10 +31,10 @@
       background-image: none !important;
     }
 
-    /* STEP2: 熟語用入力フォーム (マス目の背景区切り線付き) */
+    /* STEP2: 熟語用入力フォーム */
     .kanji-word-input {
       letter-spacing: 0.35em;
-      padding-left: 0.35em; /* 文字をマス中央に配置するためのオフセット */
+      padding-left: 0.35em;
     }
 
     /* 2文字用マス（真ん中に薄い区切り線） */
@@ -111,37 +111,50 @@
           <span id="step2LockMsg" class="text-xs text-red-400 font-normal">※STEP1を完成させてください</span>
         </div>
 
-        <!-- 熟語ごとに繋がったブロック構造 -->
+        <!-- 熟語ごとに繋がったブロック構造 (薄い区切り線付き) -->
         <div class="flex items-center justify-center gap-2 sm:gap-4 overflow-x-auto py-2">
-          <!-- 熟語1 (2文字入力欄・区切り線あり) -->
+          <!-- 熟語1 (2文字) -->
           <input type="text" id="w1" maxlength="2" class="square-input kanji-word-input kanji-2len w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
 
-          <!-- 熟語2 (2文字入力欄・区切り線あり) -->
+          <!-- 熟語2 (2文字) -->
           <input type="text" id="w2" maxlength="2" class="square-input kanji-word-input kanji-2len w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
 
-          <!-- 熟語3 (2文字入力欄・区切り線あり) -->
+          <!-- 熟語3 (2文字) -->
           <input type="text" id="w3" maxlength="2" class="square-input kanji-word-input kanji-2len w-16 h-9 sm:w-20 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
 
-          <!-- 熟語4 (3文字入力欄・区切り線あり) -->
+          <!-- 熟語4 (3文字) -->
           <input type="text" id="w4" maxlength="3" class="square-input kanji-word-input kanji-3len w-24 h-9 sm:w-28 sm:h-12 text-base sm:text-xl border-2 border-yellow-400 rounded" disabled required>
         </div>
       </section>
 
       <!-- STEP 3 -->
       <section class="space-y-4">
-        <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP3 正しいパスワードを入れ、解錠せよ</h2>
+        <h2 class="text-base sm:text-lg font-bold text-yellow-400">STEP3 暗号文を解読し、解錠せよ</h2>
 
+        <!-- 暗号文表示エリア (分かち書き) -->
         <div class="bg-gray-950 border border-yellow-500/30 p-4 rounded text-center space-y-2">
-          <p class="text-xs text-yellow-500/70">暗号文</p>
-          <div id="cipherDisplay" class="text-sm font-mono text-yellow-300">
-            [解錠ボタンを押すと判定結果が表示されます]
+          <p class="text-xs text-yellow-500/70">【 暗号文 】</p>
+          <div id="cipherDisplay" class="text-base sm:text-lg font-mono text-yellow-300 tracking-wider">
+            ※STEP1・2を入力すると暗号文が現れます
           </div>
+        </div>
+
+        <!-- 解錠 ＝ 入力欄 -->
+        <div class="flex items-center justify-center gap-3 pt-2">
+          <span class="text-xl sm:text-2xl font-extrabold text-yellow-400">解錠 ＝</span>
+          <input 
+            type="text" 
+            id="answerInput" 
+            class="square-input w-48 sm:w-64 h-11 sm:h-12 text-lg sm:text-xl rounded border-2 border-yellow-400 px-3 tracking-widest"
+            placeholder="暗号化文字列"
+            required
+          >
         </div>
 
         <button 
           type="submit" 
           id="submitBtn"
-          class="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-extrabold py-3.5 rounded text-lg transition-all active:scale-[0.98]"
+          class="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-extrabold py-3.5 rounded text-lg transition-all active:scale-[0.98] mt-4"
         >
           解錠（判定）
         </button>
@@ -162,7 +175,11 @@
     const step2Section = document.getElementById('step2Section');
     const step2LockMsg = document.getElementById('step2LockMsg');
 
-    // STEP1の入力・自動計算イベント処理
+    // STEP3: 暗号文表示・回答欄
+    const cipherDisplay = document.getElementById('cipherDisplay');
+    const answerInput = document.getElementById('answerInput');
+
+    // STEP1の入力・自動計算処理
     leftInputs.forEach((input, index) => {
       input.addEventListener('input', () => {
         input.value = input.value.replace(/[^0-9]/g, '');
@@ -172,6 +189,7 @@
         }
 
         calculateStep1();
+        updateCipher();
       });
 
       input.addEventListener('keydown', (e) => {
@@ -181,7 +199,7 @@
       });
     });
 
-    // STEP1 の右辺自動計算 & STEP2 アンロック
+    // STEP1 右辺自動計算 & STEP2 ロック解除
     function calculateStep1() {
       const vals = leftInputs.map(i => i.value);
       const isComplete = vals.every(v => v !== '');
@@ -223,9 +241,9 @@
       });
     }
 
-    // STEP2: IME（漢字変換）の確定時のみ次のフォームへ移動させる制御
+    // STEP2: 漢字決定（IME確定）時のみ次の入力欄へ移動
     kanjiInputs.forEach((input, index) => {
-      let isComposing = false; // IME変換中フラグ
+      let isComposing = false;
 
       input.addEventListener('compositionstart', () => {
         isComposing = true;
@@ -233,14 +251,14 @@
 
       input.addEventListener('compositionend', () => {
         isComposing = false;
-        // 変換確定後に判定
         checkAndMove();
+        updateCipher();
       });
 
       input.addEventListener('input', () => {
-        // IME使用中でなければ（アルファベット直打ち等の場合）判定
         if (!isComposing) {
           checkAndMove();
+          updateCipher();
         }
       });
 
@@ -258,11 +276,25 @@
       });
     });
 
+    // リアルタイム暗号文の作成・更新（分かち書き形式）
+    function updateCipher() {
+      const digits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
+      const words = kanjiInputs.map(i => i.value.trim());
+
+      // 入力が揃っていない場合
+      if (digits.length < 9 || words.some(w => w === '')) {
+        cipherDisplay.innerText = '※STEP1・2を入力すると暗号文が現れます';
+        return;
+      }
+
+      // 暗号文を分かち書き形式で表示
+      cipherDisplay.innerText = `${words[0]} / ${words[1]} / ${words[2]} / ${words[3]}`;
+    }
+
     // フォーム検証・送信処理
     const form = document.getElementById('puzzleForm');
     const resultDiv = document.getElementById('result');
     const submitBtn = document.getElementById('submitBtn');
-    const cipherDisplay = document.getElementById('cipherDisplay');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -272,17 +304,15 @@
       submitBtn.disabled = true;
       submitBtn.innerText = '検証中...';
 
-      // 1. 数字の結合 (9桁)
       const targetDigits = leftInputs.map(i => i.value).join('') + rightInputs.map(i => i.value).join('');
-
-      // 2. 熟語の取得 (4つ)
       const words = kanjiInputs.map(i => i.value.trim());
+      const userInputAnswer = answerInput.value.trim();
 
       try {
         const response = await fetch('/api/check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ targetDigits, words })
+          body: JSON.stringify({ targetDigits, words, answer: userInputAnswer })
         });
 
         const data = await response.json();
@@ -291,10 +321,9 @@
         if (data.success) {
           resultDiv.classList.add('bg-yellow-400', 'text-black', 'border-yellow-400');
           resultDiv.innerHTML = `🎉 解錠成功！<br>正解です！`;
-          cipherDisplay.innerText = `解錠鍵: ${data.readings.join(' / ')}`;
         } else {
           resultDiv.classList.add('bg-red-950', 'text-red-400', 'border-red-800');
-          resultDiv.innerText = data.error || '解錠に失敗しました。';
+          resultDiv.innerText = data.error || '解錠に失敗しました（正しく暗号化されていません）。';
         }
       } catch (err) {
         resultDiv.classList.remove('hidden');
