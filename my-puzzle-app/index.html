@@ -140,7 +140,7 @@
         </div>
       </section>
 
-      <!-- STEP 2 (STEP1クリアまで非表示 / 上部の横線を削除) -->
+      <!-- STEP 2 (STEP1クリアまで非表示 / 上部の横線なし) -->
       <section id="step2Section" class="hidden fade-in">
         <!-- 4つの熟語全体を囲む角丸枠 -->
         <div class="bg-gray-950 border border-green-500/30 p-4 rounded">
@@ -153,14 +153,14 @@
         </div>
       </section>
 
-      <!-- STEP2 と STEP3 の間の下矢印 (余白を詰めて配置) -->
+      <!-- STEP2 と STEP3 の間の下矢印 -->
       <div id="arrowDivider" class="hidden text-center -my-2 fade-in">
         <svg class="outline-arrow-svg w-8 h-7 sm:w-10 sm:h-8" viewBox="0 0 60 45">
           <polygon points="18,0 42,0 42,22 55,22 30,43 5,22 18,22" />
         </svg>
       </div>
 
-      <!-- STEP 3 (STEP2クリア判定開始で表示 / STEP2との間隔を短縮) -->
+      <!-- STEP 3 (STEP2クリア判定開始で表示) -->
       <section id="step3Section" class="hidden space-y-3 fade-in">
         <!-- 暗号文表示エリア -->
         <div class="bg-gray-950 border border-green-500/30 p-4 rounded text-center">
@@ -221,6 +221,7 @@
     let substitutionMap = {};
     let expectedAnswer = "";
 
+    // 1ひらがな -> [小文字アルファベット + 記号] の変換テーブルを生成
     function generateSubstitutionMap() {
       const map = {};
       const usedPairs = new Set();
@@ -249,6 +250,10 @@
       return encrypted;
     }
 
+    // ページロード時に暗号マップと正解文字列を生成
+    substitutionMap = generateSubstitutionMap();
+    expectedAnswer = encryptTextWithMap('かいじょう', substitutionMap);
+
     const leftInputs = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'].map(id => document.getElementById(id));
     const rightInputs = ['d6', 'd7', 'd8'].map(id => document.getElementById(id));
     const kanjiInputs = ['w1', 'w2', 'w3', 'w4'].map(id => document.getElementById(id));
@@ -262,10 +267,7 @@
     const closeModalBtn = document.getElementById('closeModalBtn');
 
     let currentReadings = null;
-    let lastCheckedDigits = "";
     let fetchRequestId = 0;
-
-    substitutionMap = generateSubstitutionMap();
 
     // STEP1: 入力制御（1〜9のみ許可・0不可）
     leftInputs.forEach((input, index) => {
@@ -358,7 +360,6 @@
       arrowDivider.classList.add('hidden');
       step3Section.classList.add('hidden');
       currentReadings = null;
-      expectedAnswer = "";
       answerInput.value = '';
       cipherDisplay.innerText = '';
       cipherDisplay.classList.remove('pulse-loading');
@@ -395,11 +396,8 @@
 
         if (data.success && data.readings) {
           currentReadings = data.readings;
-          lastCheckedDigits = digits;
 
-          substitutionMap = generateSubstitutionMap();
-          expectedAnswer = encryptTextWithMap('かいじょう', substitutionMap);
-
+          // ロード時に作成した substitutionMap を使って暗号化
           const encryptedWords = currentReadings.map(reading => encryptTextWithMap(reading, substitutionMap));
           
           cipherDisplay.className = 'text-base sm:text-lg font-mono text-green-300 tracking-wider min-h-[28px] flex items-center justify-center';
